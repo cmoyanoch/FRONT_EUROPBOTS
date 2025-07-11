@@ -30,7 +30,9 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 # Copiar archivos necesarios
-COPY --from=builder /app/public ./public
+# With this (create directory if it doesn't exist):
+RUN mkdir -p ./public
+COPY --from=builder /app/public* ./public/ 2>/dev/null || true
 COPY --from=builder /app/package.json ./package.json
 
 # Copiar la aplicación construida
