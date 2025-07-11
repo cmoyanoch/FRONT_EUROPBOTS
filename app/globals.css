@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+    :root {
+        --background: 0 0% 100%;
+        --foreground: 222.2 84% 4.9%;
+        --card: 0 0% 100%;
+        --card-foreground: 222.2 84% 4.9%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 222.2 84% 4.9%;
+        --primary: 222.2 47.4% 11.2%;
+        --primary-foreground: 210 40% 98%;
+        --secondary: 210 40% 96%;
+        --secondary-foreground: 222.2 84% 4.9%;
+        --muted: 210 40% 96%;
+        --muted-foreground: 215.4 16.3% 46.9%;
+        --accent: 210 40% 96%;
+        --accent-foreground: 222.2 84% 4.9%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 210 40% 98%;
+        --border: 214.3 31.8% 91.4%;
+        --input: 214.3 31.8% 91.4%;
+        --ring: 222.2 84% 4.9%;
+        --radius: 0.5rem;
+
+        /* Variables CSS de Europbots */
+        --europbots-primary: #080808;
+        --europbots-secondary: #D2FF00;
+        --europbots-text: #FAFAFA;
+        --europbots-accent: #F9F9F9;
+        --europbots-dark: #222222;
+        --europbots-gray: #454444;
+        --europbots-light-gray: #DBDBDB;
+    }
+
+    .dark {
+        --background: 222.2 84% 4.9%;
+        --foreground: 210 40% 98%;
+        --card: 222.2 84% 4.9%;
+        --card-foreground: 210 40% 98%;
+        --popover: 222.2 84% 4.9%;
+        --popover-foreground: 210 40% 98%;
+        --primary: 210 40% 98%;
+        --primary-foreground: 222.2 47.4% 11.2%;
+        --secondary: 217.2 32.6% 17.5%;
+        --secondary-foreground: 210 40% 98%;
+        --muted: 217.2 32.6% 17.5%;
+        --muted-foreground: 215 20.2% 65.1%;
+        --accent: 217.2 32.6% 17.5%;
+        --accent-foreground: 210 40% 98%;
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 210 40% 98%;
+        --border: 217.2 32.6% 17.5%;
+        --input: 217.2 32.6% 17.5%;
+        --ring: 212.7 26.8% 83.9%;
+    }
+}
+
+@layer base {
+    * {
+        @apply border-gray-200;
+    }
+
+    body {
+        @apply bg-background text-foreground;
+        font-family: 'Red Hat Display', sans-serif;
+    }
+}
+
+@layer components {
+
+    /* Estilos personalizados de Europbots */
+    .europbots-gradient {
+        background: linear-gradient(135deg, var(--europbots-primary) 0%, var(--europbots-dark) 50%, var(--europbots-gray) 100%);
+    }
+
+    .europbots-card {
+        @apply bg-europbots-accent/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-europbots-secondary/20;
+    }
+
+    .europbots-button {
+        @apply bg-europbots-secondary text-europbots-primary font-bold py-2 px-4 rounded-lg hover:bg-europbots-secondary/90 transition-colors duration-200;
+    }
+
+    /* Clases adicionales para gradientes */
+    .europbots-gradient-alt {
+        background: linear-gradient(135deg, var(--europbots-dark) 0%, var(--europbots-primary) 50%, var(--europbots-accent) 100%);
+    }
+
+    /* Clases para fondos con opacidad */
+    .europbots-bg-accent-95 {
+        background-color: rgba(249, 249, 249, 0.95);
+    }
+
+    .europbots-bg-primary-10 {
+        background-color: rgba(8, 8, 8, 0.1);
+    }
+
+    .europbots-border-secondary-20 {
+        border-color: rgba(210, 255, 0, 0.2);
+    }
+}
