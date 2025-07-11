@@ -29,10 +29,15 @@ ENV NEXT_TELEMETRY_DISABLED 1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copiar archivos necesarios
-# With this (create directory if it doesn't exist):
+# Crear directorio public primero
 RUN mkdir -p ./public
-COPY --from=builder /app/public* ./public/ 2>/dev/null || true
+
+# Copiar archivos public si existen, usando RUN en lugar de COPY
+RUN if [ -d "/app/public" ]; then \
+    cp -r /app/public/* ./public/ 2>/dev/null || true; \
+    fi
+
+# Resto de las copias...
 COPY --from=builder /app/package.json ./package.json
 
 # Copiar la aplicación construida
