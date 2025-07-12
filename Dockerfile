@@ -15,7 +15,7 @@ FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
+COPY public ./public
 # Generar la aplicación Next.js
 RUN npm run build
 
@@ -29,21 +29,11 @@ ENV NEXT_TELEMETRY_DISABLED 1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Crear directorio public primero
-RUN mkdir -p ./public
-
-# Copiar archivos public si existen, usando RUN en lugar de COPY
-RUN if [ -d "/app/public" ]; then \
-    cp -r /app/public/* ./public/ 2>/dev/null || true; \
-    fi
-
 # Copiar la carpeta public (imágenes y estáticos)
 COPY --from=builder /app/public ./public
 
 # Resto de las copias...
 COPY --from=builder /app/package.json ./package.json
-
-# Copiar la aplicación construida
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
