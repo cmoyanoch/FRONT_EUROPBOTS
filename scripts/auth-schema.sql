@@ -1,6 +1,9 @@
 -- Script para crear el esquema de autenticación en PostgreSQL
 -- Ejecutar en la base de datos n8n existente
 
+-- Habilitar extensión para UUIDs
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
 -- Crear esquema para la aplicación web
 CREATE SCHEMA IF NOT EXISTS webapp;
 
@@ -57,10 +60,12 @@ END;
 $$ language 'plpgsql';
 
 -- Triggers para actualizar updated_at automáticamente
+DROP TRIGGER IF EXISTS update_users_updated_at ON webapp.users;
 CREATE TRIGGER update_users_updated_at 
     BEFORE UPDATE ON webapp.users 
     FOR EACH ROW EXECUTE FUNCTION webapp.update_updated_at_column();
 
+DROP TRIGGER IF EXISTS update_profiles_updated_at ON webapp.profiles;
 CREATE TRIGGER update_profiles_updated_at 
     BEFORE UPDATE ON webapp.profiles 
     FOR EACH ROW EXECUTE FUNCTION webapp.update_updated_at_column();
@@ -86,21 +91,21 @@ COMMENT ON TABLE webapp.sessions IS 'Tabla para manejar sesiones y tokens JWT';
 COMMENT ON TABLE webapp.profiles IS 'Tabla para información extendida de perfiles de usuario';
 
 -- Permisos (ajustar según tu configuración de seguridad)
-GRANT USAGE ON SCHEMA webapp TO n8n;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA webapp TO n8n;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA webapp TO n8n;
-GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA webapp TO n8n;
+GRANT USAGE ON SCHEMA webapp TO n8n_user;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA webapp TO n8n_user;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA webapp TO n8n_user;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA webapp TO n8n_user;
 
 -- Crear usuario administrador por defecto (password: admin123)
 INSERT INTO webapp.users (email, password_hash, full_name, role) VALUES 
 ('admin@europbots.com', '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4tbQJ8Kj1G', 'Administrador Europbots', 'admin')
 ON CONFLICT (email) DO NOTHING;
 
--- Verificar que todo se creó correctamente
-SELECT 
-    table_name, 
-    column_name, 
-    data_type 
-FROM information_schema.columns 
-WHERE table_schema = 'webapp' 
-ORDER BY table_name, ordinal_position; 
+-- Verificar que las tablas se crearon correctamente
+-- SELECT 
+--     table_name, 
+--     column_name, 
+--     data_type 
+-- FROM information_schema.columns 
+-- WHERE table_schema = 'webapp' 
+-- ORDER BY table_name, ordinal_position; 

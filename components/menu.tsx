@@ -36,6 +36,9 @@ export default function Menu({ user, className }: MenuProps) {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const pathname = usePathname()
 
+  // Ocultar menú en login, register o si NO hay usuario autenticado
+  if (!user || pathname === '/login' || pathname === '/register') return null;
+
   const handleLogout = async () => {
     try {
       const response = await fetch('/api/auth/logout', {
@@ -53,14 +56,14 @@ export default function Menu({ user, className }: MenuProps) {
   const isActive = (path: string) => pathname === path
 
   const menuItems = [
-    { href: '/', label: '🏠 Accueil', icon: Home },
-    { href: '/search', label: '🔍 Búsqueda', icon: Search },
-    { href: '/analytics', label: '📊 Analytics', icon: BarChart3 },
-    { href: '/automation', label: '🤖 Automation', icon: Bot },
-    { href: '/leads', label: '👥 Leads', icon: Users },
-    { href: '/messages', label: '📧 Messages', icon: MessageSquare },
-    { href: '/config', label: '⚙️ Config', icon: Settings },
-    { href: '/alerts', label: '🔔 Alertas', icon: Bell },
+    { href: '/', label: 'Accueil', icon: Home },
+    { href: '/search', label: 'Búsqueda', icon: Search },
+    { href: '/analytics', label: 'Analytics', icon: BarChart3 },
+    { href: '/automation', label: 'Automation', icon: Bot },
+    { href: '/leads', label: 'Leads', icon: Users },
+    { href: '/messages', label: 'Messages', icon: MessageSquare },
+    { href: '/config', label: 'Config', icon: Settings },
+    { href: '/alerts', label: 'Alertas', icon: Bell },
   ]
 
   return (

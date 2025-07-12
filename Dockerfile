@@ -37,6 +37,9 @@ RUN if [ -d "/app/public" ]; then \
     cp -r /app/public/* ./public/ 2>/dev/null || true; \
     fi
 
+# Copiar la carpeta public (imágenes y estáticos)
+COPY --from=builder /app/public ./public
+
 # Resto de las copias...
 COPY --from=builder /app/package.json ./package.json
 
