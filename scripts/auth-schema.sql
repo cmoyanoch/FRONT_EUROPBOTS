@@ -1,22 +1,6 @@
 -- Script para crear la base de datos, usuario y esquema de autenticación
 -- Este script crea todo desde cero
 
--- Crear usuario para la webapp (si no existe)
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'webapp_user') THEN
-        CREATE USER webapp_user WITH PASSWORD 'webapp_password';
-    END IF;
-END
-$$;
-
--- Crear base de datos para la webapp (si no existe)
-SELECT 'CREATE DATABASE webapp_db OWNER webapp_user'
-WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'webapp_db')\gexec
-
--- Conectar a la nueva base de datos
-\c webapp_db;
-
 -- Habilitar extensión para UUIDs
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
