@@ -1,5 +1,21 @@
--- Script para crear el esquema de autenticación en PostgreSQL
--- Ejecutar en la base de datos n8n existente
+-- Script para crear la base de datos, usuario y esquema de autenticación
+-- Este script crea todo desde cero
+
+-- Crear usuario para la webapp (si no existe)
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'webapp_user') THEN
+        CREATE USER webapp_user WITH PASSWORD 'webapp_password';
+    END IF;
+END
+$$;
+
+-- Crear base de datos para la webapp (si no existe)
+SELECT 'CREATE DATABASE webapp_db OWNER webapp_user'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'webapp_db')\gexec
+
+-- Conectar a la nueva base de datos
+\c webapp_db;
 
 -- Habilitar extensión para UUIDs
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
@@ -84,17 +100,21 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+
 -- Comentarios para documentación
 COMMENT ON SCHEMA webapp IS 'Esquema para la aplicación web de autenticación';
 COMMENT ON TABLE webapp.users IS 'Tabla principal de usuarios del sistema';
 COMMENT ON TABLE webapp.sessions IS 'Tabla para manejar sesiones y tokens JWT';
 COMMENT ON TABLE webapp.profiles IS 'Tabla para información extendida de perfiles de usuario';
 
--- Permisos (ajustar según tu configuración de seguridad)
-GRANT USAGE ON SCHEMA webapp TO n8n_user;
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA webapp TO n8n_user;
-GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA webapp TO n8n_user;
-GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA webapp TO n8n_user;
+-- Dar permisos al usuario webapp_user
+GRANT USAGE ON SCHEMA webapp TO webapp_user;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA webapp TO webapp_user;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA webapp TO webapp_user;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA webapp TO webapp_user;
+GRANT ALL PRIVILEGES ON SCHEMA webapp TO webapp_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA webapp GRANT ALL ON TABLES TO webapp_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA webapp GRANT ALL ON SEQUENCES TO webapp_user;
 
 -- Crear usuario administrador por defecto (password: admin123)
 INSERT INTO webapp.users (email, password_hash, full_name, role) VALUES 
