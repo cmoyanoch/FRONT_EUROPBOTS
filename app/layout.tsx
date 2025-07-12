@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Inter, Red_Hat_Display, Syncopate, Montserrat } from 'next/font/google'
 import './globals.css'
 import Menu from '../components/menu'
-import { cookies } from 'next/headers'
+import { cookies, headers } from 'next/headers'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -37,7 +37,13 @@ export const metadata: Metadata = {
 
 async function getUser(token: string) {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/auth/me`, {
+    // Obtener la URL base desde los headers del request
+    const headersList = headers()
+    const host = headersList.get('host')
+    const protocol = headersList.get('x-forwarded-proto') || 'http'
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || `${protocol}://${host}`
+    
+    const response = await fetch(`${baseUrl}/api/auth/me`, {
       headers: {
         'Cookie': `auth-token=${token}`
       }
