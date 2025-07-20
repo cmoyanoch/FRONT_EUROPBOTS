@@ -4,6 +4,7 @@
 
 @layer base {
     :root {
+        /* Variables CSS para Shadcn UI */
         --background: 0 0% 100%;
         --foreground: 222.2 84% 4.9%;
         --card: 0 0% 100%;
@@ -56,9 +57,7 @@
         --input: 217.2 32.6% 17.5%;
         --ring: 212.7 26.8% 83.9%;
     }
-}
 
-@layer base {
     * {
         @apply border-gray-200;
     }
@@ -66,11 +65,23 @@
     body {
         @apply bg-background text-foreground;
         font-family: 'Red Hat Display', sans-serif;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Optimización de scroll */
+    html {
+        scroll-behavior: smooth;
+    }
+
+    /* Mejoras de accesibilidad */
+    :focus-visible {
+        outline: 2px solid var(--europbots-secondary);
+        outline-offset: 2px;
     }
 }
 
 @layer components {
-
     /* Estilos personalizados de Europbots */
     .europbots-gradient {
         background: linear-gradient(135deg, var(--europbots-primary) 0%, var(--europbots-dark) 50%, var(--europbots-gray) 100%);
@@ -89,16 +100,242 @@
         background: linear-gradient(135deg, var(--europbots-dark) 0%, var(--europbots-primary) 50%, var(--europbots-accent) 100%);
     }
 
-    /* Clases para fondos con opacidad */
-    .europbots-bg-accent-95 {
-        background-color: rgba(249, 249, 249, 0.95);
+    /* Fondo futurístico con líneas de energía */
+    .futuristic-bg {
+        position: relative;
+        background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 25%, #0f0f0f 50%, #1a1a1a 75%, #0a0a0a 100%);
+        overflow: hidden;
     }
 
-    .europbots-bg-primary-10 {
-        background-color: rgba(8, 8, 8, 0.1);
+    .futuristic-bg::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            radial-gradient(circle at 20% 20%, rgba(210, 255, 0, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 80% 20%, rgba(210, 255, 0, 0.1) 0%, transparent 50%),
+            radial-gradient(circle at 50% 50%, rgba(210, 255, 0, 0.05) 0%, transparent 70%);
+        animation: energyPulse 8s ease-in-out infinite;
     }
 
-    .europbots-border-secondary-20 {
-        border-color: rgba(210, 255, 0, 0.2);
+    .futuristic-bg::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: 
+            linear-gradient(45deg, transparent 30%, rgba(210, 255, 0, 0.03) 50%, transparent 70%),
+            linear-gradient(-45deg, transparent 30%, rgba(210, 255, 0, 0.03) 50%, transparent 70%);
+        animation: energyFlow 12s linear infinite;
+    }
+
+    /* Líneas de energía animadas */
+    .energy-lines {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+    }
+
+    .energy-line {
+        position: absolute;
+        background: linear-gradient(90deg, transparent, #D2FF00, transparent);
+        height: 2px;
+        border-radius: 50%;
+        box-shadow: 0 0 20px #D2FF00, 0 0 40px #D2FF00;
+        animation: energyTrail 6s linear infinite;
+    }
+
+    .energy-line:nth-child(1) {
+        top: 10%;
+        left: -100px;
+        width: 300px;
+        transform: rotate(45deg);
+        animation-delay: 0s;
+    }
+
+    .energy-line:nth-child(2) {
+        top: 15%;
+        right: -100px;
+        width: 250px;
+        transform: rotate(-45deg);
+        animation-delay: 1s;
+    }
+
+    .energy-line:nth-child(3) {
+        top: 25%;
+        left: -80px;
+        width: 200px;
+        transform: rotate(30deg);
+        animation-delay: 2s;
+    }
+
+    .energy-line:nth-child(4) {
+        top: 30%;
+        right: -80px;
+        width: 180px;
+        transform: rotate(-30deg);
+        animation-delay: 3s;
+    }
+
+    .energy-line:nth-child(5) {
+        top: 40%;
+        left: -60px;
+        width: 150px;
+        transform: rotate(15deg);
+        animation-delay: 4s;
+    }
+
+    .energy-line:nth-child(6) {
+        top: 45%;
+        right: -60px;
+        width: 120px;
+        transform: rotate(-15deg);
+        animation-delay: 5s;
+    }
+
+    /* Partículas de energía */
+    .energy-particles {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+    }
+
+    .energy-particle {
+        position: absolute;
+        width: 4px;
+        height: 4px;
+        background: #D2FF00;
+        border-radius: 50%;
+        box-shadow: 0 0 10px #D2FF00;
+        animation: particleFloat 8s ease-in-out infinite;
+    }
+
+    .energy-particle:nth-child(1) {
+        top: 20%;
+        left: 10%;
+        animation-delay: 0s;
+    }
+
+    .energy-particle:nth-child(2) {
+        top: 35%;
+        right: 15%;
+        animation-delay: 2s;
+    }
+
+    .energy-particle:nth-child(3) {
+        top: 60%;
+        left: 20%;
+        animation-delay: 4s;
+    }
+
+    .energy-particle:nth-child(4) {
+        top: 25%;
+        right: 25%;
+        animation-delay: 6s;
+    }
+
+    .energy-particle:nth-child(5) {
+        top: 70%;
+        left: 30%;
+        animation-delay: 1s;
+    }
+
+    .energy-particle:nth-child(6) {
+        top: 45%;
+        right: 35%;
+        animation-delay: 3s;
+    }
+
+    /* Grid de energía */
+    .energy-grid {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: 
+            linear-gradient(rgba(210, 255, 0, 0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(210, 255, 0, 0.03) 1px, transparent 1px);
+        background-size: 50px 50px;
+        animation: gridMove 20s linear infinite;
+    }
+
+    /* Animaciones */
+    @keyframes energyPulse {
+        0%, 100% { opacity: 0.3; }
+        50% { opacity: 0.6; }
+    }
+
+    @keyframes energyFlow {
+        0% { transform: translateX(-100%) translateY(-100%); }
+        100% { transform: translateX(100%) translateY(100%); }
+    }
+
+    @keyframes energyTrail {
+        0% {
+            transform: translateX(-100px) rotate(45deg);
+            opacity: 0;
+        }
+        10% {
+            opacity: 1;
+        }
+        90% {
+            opacity: 1;
+        }
+        100% {
+            transform: translateX(calc(100vw + 100px)) rotate(45deg);
+            opacity: 0;
+        }
+    }
+
+    @keyframes energyTrailReverse {
+        0% {
+            transform: translateX(100px) rotate(-45deg);
+            opacity: 0;
+        }
+        10% {
+            opacity: 1;
+        }
+        90% {
+            opacity: 1;
+        }
+        100% {
+            transform: translateX(calc(-100vw - 100px)) rotate(-45deg);
+            opacity: 0;
+        }
+    }
+
+    @keyframes particleFloat {
+        0%, 100% {
+            transform: translateY(0px) scale(1);
+            opacity: 0.7;
+        }
+        50% {
+            transform: translateY(-20px) scale(1.2);
+            opacity: 1;
+        }
+    }
+
+    @keyframes gridMove {
+        0% { transform: translate(0, 0); }
+        100% { transform: translate(50px, 50px); }
+    }
+
+    /* Aplicar animaciones a elementos específicos */
+    .energy-line:nth-child(2),
+    .energy-line:nth-child(4),
+    .energy-line:nth-child(6) {
+        animation: energyTrailReverse 6s linear infinite;
     }
 }

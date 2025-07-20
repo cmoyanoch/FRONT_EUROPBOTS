@@ -1,315 +1,368 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Settings, Bot, Shield, Activity, AlertTriangle, CheckCircle, Clock } from 'lucide-react'
+import { 
+  Settings, 
+  User, 
+  Shield, 
+  Bell, 
+  Database, 
+  Zap,
+  Globe,
+  Mail,
+  Key,
+  Save,
+  Eye,
+  EyeOff
+} from 'lucide-react'
+import FuturisticBackground from '@/components/futuristic-background'
 
 export default function ConfigPage() {
-  const [toolConfig, setToolConfig] = useState([
-    {
-      name: 'Search Export',
-      status: 'active',
-      budget: 10,
-      nextRun: 'in 2h 15m',
-      icon: '🔍'
-    },
-    {
-      name: 'Profile Visitor',
-      status: 'active',
-      budget: 20,
-      nextRun: 'in 45m',
-      icon: '👁️'
-    },
-    {
-      name: 'Profile Scraper',
-      status: 'active',
-      budget: 25,
-      nextRun: 'in 1h 30m',
-      icon: '📧'
-    },
-    {
-      name: 'Auto Connect',
-      status: 'paused',
-      budget: 10,
-      nextRun: 'Paused (Weekend)',
-      icon: '🤝'
-    },
-    {
-      name: 'Message Sender',
-      status: 'active',
-      budget: 15,
-      nextRun: 'in 3h',
-      icon: '💬'
-    }
-  ])
+  const [activeTab, setActiveTab] = useState('profile')
+  const [showPassword, setShowPassword] = useState(false)
 
-  const [safetyMetrics, setSafetyMetrics] = useState([
-    { metric: 'Profile Visits', value: '65/80', status: 'safe', target: 'Safe' },
-    { metric: 'Error Rate', value: '2%', status: 'safe', target: '<5%' },
-    { metric: 'Session Age', value: '18h', status: 'safe', target: 'Fresh' },
-    { metric: 'Accept Rate', value: '38%', status: 'monitor', target: 'Monitor' },
-    { metric: 'LinkedIn Warnings', value: 'None', status: 'safe', target: 'None' }
-  ])
+  const tabs = [
+    { id: 'profile', name: 'Perfil', icon: User },
+    { id: 'security', name: 'Seguridad', icon: Shield },
+    { id: 'notifications', name: 'Notificaciones', icon: Bell },
+    { id: 'integrations', name: 'Integraciones', icon: Zap },
+    { id: 'api', name: 'API', icon: Key }
+  ]
 
-  const [alerts, setAlerts] = useState([
-    { type: 'Account Warning', trigger: 'LinkedIn alert', action: 'Stop all tools', severity: 'high' },
-    { type: 'Budget Limit', trigger: '75 visits/day', action: 'Reduce activity', severity: 'medium' },
-    { type: 'High Performance', trigger: 'Accept rate >50%', action: 'Scale up', severity: 'low' },
-    { type: 'New Opportunity', trigger: 'Meeting booked', action: 'CRM notification', severity: 'low' },
-    { type: 'Tool Error', trigger: 'Phantom fails', action: 'Technical review', severity: 'medium' }
-  ])
+  const renderProfileTab = () => (
+    <div className="space-y-6">
+      <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">Información Personal</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Nombre Completo</label>
+            <input
+              type="text"
+              defaultValue="Juan Pérez"
+              className="w-full px-3 py-2 bg-white/10 border border-europbots-secondary/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
+            <input
+              type="email"
+              defaultValue="juan.perez@empresa.com"
+              className="w-full px-3 py-2 bg-white/10 border border-europbots-secondary/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Teléfono</label>
+            <input
+              type="tel"
+              defaultValue="+34 600 123 456"
+              className="w-full px-3 py-2 bg-white/10 border border-europbots-secondary/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Empresa</label>
+            <input
+              type="text"
+              defaultValue="Tech Solutions S.L."
+              className="w-full px-3 py-2 bg-white/10 border border-europbots-secondary/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm"
+            />
+          </div>
+        </div>
+      </div>
 
-  const [apiKeys, setApiKeys] = useState({
-    phantomBuster: 'pb_••••••••••••••••••••••••••••••••',
-    linkedIn: 'li_••••••••••••••••••••••••••••••••',
-    axonaut: 'ax_••••••••••••••••••••••••••••••••'
-  })
+      <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">Preferencias</h3>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-white font-medium">Idioma</p>
+              <p className="text-sm text-gray-300">Selecciona el idioma de la interfaz</p>
+            </div>
+            <select className="px-3 py-2 bg-white/10 border border-europbots-secondary/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm">
+              <option value="es">Español</option>
+              <option value="en">English</option>
+              <option value="fr">Français</option>
+            </select>
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-white font-medium">Zona Horaria</p>
+              <p className="text-sm text-gray-300">Configura tu zona horaria local</p>
+            </div>
+            <select className="px-3 py-2 bg-white/10 border border-europbots-secondary/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm">
+              <option value="Europe/Madrid">Madrid (GMT+1)</option>
+              <option value="Europe/London">London (GMT+0)</option>
+              <option value="America/New_York">New York (GMT-5)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'safe': return 'text-green-600 bg-green-100'
-      case 'monitor': return 'text-yellow-600 bg-yellow-100'
-      case 'warning': return 'text-red-600 bg-red-100'
-      default: return 'text-gray-600 bg-gray-100'
-    }
-  }
+  const renderSecurityTab = () => (
+    <div className="space-y-6">
+      <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">Cambiar Contraseña</h3>
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Contraseña Actual</label>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                className="w-full pl-3 pr-10 py-2 bg-white/10 border border-europbots-secondary/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm"
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4 text-gray-400" />
+                ) : (
+                  <Eye className="h-4 w-4 text-gray-400" />
+                )}
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Nueva Contraseña</label>
+            <input
+              type="password"
+              className="w-full px-3 py-2 bg-white/10 border border-europbots-secondary/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm"
+              placeholder="••••••••"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">Confirmar Nueva Contraseña</label>
+            <input
+              type="password"
+              className="w-full px-3 py-2 bg-white/10 border border-europbots-secondary/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm"
+              placeholder="••••••••"
+            />
+          </div>
+          <button className="bg-europbots-secondary text-europbots-primary font-bold py-2 px-4 rounded-lg hover:bg-europbots-secondary/90 transition-colors">
+            Cambiar Contraseña
+          </button>
+        </div>
+      </div>
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'high': return 'text-red-600'
-      case 'medium': return 'text-yellow-600'
-      case 'low': return 'text-green-600'
-      default: return 'text-gray-600'
-    }
-  }
+      <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">Autenticación de Dos Factores</h3>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-white font-medium">2FA</p>
+            <p className="text-sm text-gray-300">Añade una capa extra de seguridad</p>
+          </div>
+          <button className="bg-europbots-secondary text-europbots-primary font-bold py-2 px-4 rounded-lg hover:bg-europbots-secondary/90 transition-colors">
+            Configurar 2FA
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 
-  const getSeverityIcon = (severity: string) => {
-    switch (severity) {
-      case 'high': return '🔴'
-      case 'medium': return '🟡'
-      case 'low': return '🟢'
-      default: return '⚪'
+  const renderNotificationsTab = () => (
+    <div className="space-y-6">
+      <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">Notificaciones por Email</h3>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-white font-medium">Nuevos Leads</p>
+              <p className="text-sm text-gray-300">Recibe notificaciones cuando se generen nuevos leads</p>
+            </div>
+            <input type="checkbox" defaultChecked className="w-4 h-4 text-europbots-secondary bg-white/10 border-europbots-secondary/20 rounded focus:ring-europbots-secondary focus:ring-2" />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-white font-medium">Conversiones</p>
+              <p className="text-sm text-gray-300">Notificaciones de conversiones exitosas</p>
+            </div>
+            <input type="checkbox" defaultChecked className="w-4 h-4 text-europbots-secondary bg-white/10 border-europbots-secondary/20 rounded focus:ring-europbots-secondary focus:ring-2" />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-white font-medium">Errores de Automatización</p>
+              <p className="text-sm text-gray-300">Alertas cuando las automatizaciones fallen</p>
+            </div>
+            <input type="checkbox" defaultChecked className="w-4 h-4 text-europbots-secondary bg-white/10 border-europbots-secondary/20 rounded focus:ring-europbots-secondary focus:ring-2" />
+          </div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-white font-medium">Reportes Semanales</p>
+              <p className="text-sm text-gray-300">Resumen semanal de actividad</p>
+            </div>
+            <input type="checkbox" className="w-4 h-4 text-europbots-secondary bg-white/10 border-europbots-secondary/20 rounded focus:ring-europbots-secondary focus:ring-2" />
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">Notificaciones Push</h3>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-white font-medium">Notificaciones en Tiempo Real</p>
+              <p className="text-sm text-gray-300">Recibe alertas instantáneas en el navegador</p>
+            </div>
+            <input type="checkbox" defaultChecked className="w-4 h-4 text-europbots-secondary bg-white/10 border-europbots-secondary/20 rounded focus:ring-europbots-secondary focus:ring-2" />
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
+  const renderIntegrationsTab = () => (
+    <div className="space-y-6">
+      <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">Integraciones Conectadas</h3>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
+            <div className="flex items-center space-x-3">
+              <div className="bg-blue-500/20 p-2 rounded-lg">
+                <Globe className="w-5 h-5 text-blue-400" />
+              </div>
+              <div>
+                <p className="text-white font-medium">LinkedIn</p>
+                <p className="text-sm text-gray-300">Conectado • Última sincronización: Hace 2 horas</p>
+              </div>
+            </div>
+            <button className="text-red-400 hover:text-red-300 text-sm font-medium">Desconectar</button>
+          </div>
+          
+          <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
+            <div className="flex items-center space-x-3">
+              <div className="bg-green-500/20 p-2 rounded-lg">
+                <Mail className="w-5 h-5 text-green-400" />
+              </div>
+              <div>
+                <p className="text-white font-medium">Gmail</p>
+                <p className="text-sm text-gray-300">Conectado • Última sincronización: Hace 1 día</p>
+              </div>
+            </div>
+            <button className="text-red-400 hover:text-red-300 text-sm font-medium">Desconectar</button>
+          </div>
+          
+          <div className="flex items-center justify-between p-4 bg-white/5 rounded-lg">
+            <div className="flex items-center space-x-3">
+              <div className="bg-purple-500/20 p-2 rounded-lg">
+                <Database className="w-5 h-5 text-purple-400" />
+              </div>
+              <div>
+                <p className="text-white font-medium">CRM HubSpot</p>
+                <p className="text-sm text-gray-300">No conectado</p>
+              </div>
+            </div>
+            <button className="bg-europbots-secondary text-europbots-primary font-bold py-2 px-4 rounded-lg hover:bg-europbots-secondary/90 transition-colors text-sm">
+              Conectar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+
+  const renderApiTab = () => (
+    <div className="space-y-6">
+      <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">API Keys</h3>
+        <div className="space-y-4">
+          <div className="p-4 bg-white/5 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-white font-medium">API Key Principal</p>
+              <button className="text-europbots-secondary hover:text-europbots-secondary/80 text-sm font-medium">
+                Regenerar
+              </button>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="password"
+                defaultValue="sk_live_1234567890abcdef"
+                className="flex-1 px-3 py-2 bg-white/10 border border-europbots-secondary/20 rounded-lg text-white font-mono text-sm focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm"
+                readOnly
+              />
+              <button className="px-3 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors">
+                Copiar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">Documentación API</h3>
+        <p className="text-gray-300 mb-4">
+          Consulta nuestra documentación completa para integrar EUROPBOTS en tus aplicaciones.
+        </p>
+        <button className="bg-europbots-secondary text-europbots-primary font-bold py-2 px-4 rounded-lg hover:bg-europbots-secondary/90 transition-colors">
+          Ver Documentación
+        </button>
+      </div>
+    </div>
+  )
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'profile': return renderProfileTab()
+      case 'security': return renderSecurityTab()
+      case 'notifications': return renderNotificationsTab()
+      case 'integrations': return renderIntegrationsTab()
+      case 'api': return renderApiTab()
+      default: return renderProfileTab()
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen relative">
+      {/* Fondo Futurístico */}
+      <FuturisticBackground />
+      
+      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            ⚙️ Configuración del Sistema
-          </h1>
-          <p className="text-gray-600">
-            Configuración de herramientas PhantomBuster y monitoreo de seguridad
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">
+                Configuración
+              </h1>
+              <p className="text-gray-300">
+                Gestiona tu cuenta y preferencias
+              </p>
+            </div>
+            <button className="bg-europbots-secondary text-europbots-primary font-bold py-3 px-6 rounded-lg hover:bg-europbots-secondary/90 transition-colors flex items-center space-x-2">
+              <Save className="w-5 h-5" />
+              <span>Guardar Cambios</span>
+            </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Configuración de Herramientas */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Bot className="w-5 h-5 mr-2" />
-                Configuración de Herramientas PhantomBuster
-              </CardTitle>
-              <CardDescription>
-                Estado y configuración de las herramientas de automatización
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {toolConfig.map((tool, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-2xl">{tool.icon}</span>
-                      <div>
-                        <div className="font-medium">{tool.name}</div>
-                        <div className="text-sm text-gray-500">
-                          Budget: {tool.budget}/day • Next: {tool.nextRun}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        tool.status === 'active' ? 'text-green-600 bg-green-100' : 'text-yellow-600 bg-yellow-100'
-                      }`}>
-                        {tool.status === 'active' ? '✅' : '⏸️'} {tool.status.toUpperCase()}
-                      </span>
-                      <Button variant="outline" size="sm">
-                        <Settings className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Monitoreo de Seguridad */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Shield className="w-5 h-5 mr-2" />
-                Monitoreo de Seguridad de Cuenta
-              </CardTitle>
-              <CardDescription>
-                Métricas de seguridad y estado de la cuenta LinkedIn
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {safetyMetrics.map((metric, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <div className={`w-3 h-3 rounded-full ${
-                        metric.status === 'safe' ? 'bg-green-500' : 
-                        metric.status === 'monitor' ? 'bg-yellow-500' : 'bg-red-500'
-                      }`}></div>
-                      <div>
-                        <div className="font-medium">{metric.metric}</div>
-                        <div className="text-sm text-gray-500">Target: {metric.target}</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-medium">{metric.value}</div>
-                      <div className={`text-xs ${getStatusColor(metric.status)}`}>
-                        {metric.status === 'safe' ? '🟢 Safe' : 
-                         metric.status === 'monitor' ? '🟡 Monitor' : '🔴 Warning'}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+        {/* Tabs */}
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-2 mb-8">
+          <div className="flex space-x-1">
+            {tabs.map((tab) => {
+              const Icon = tab.icon
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                    activeTab === tab.id
+                      ? 'bg-europbots-secondary text-europbots-primary'
+                      : 'text-gray-300 hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{tab.name}</span>
+                </button>
+              )
+            })}
+          </div>
         </div>
 
-        {/* Sistema de Alertas */}
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <AlertTriangle className="w-5 h-5 mr-2" />
-              Sistema de Alertas
-            </CardTitle>
-            <CardDescription>
-              Configuración de alertas y notificaciones automáticas
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {alerts.map((alert, index) => (
-                <div key={index} className="border rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-medium">{alert.type}</h4>
-                    <span className={`text-lg ${getSeverityColor(alert.severity)}`}>
-                      {getSeverityIcon(alert.severity)}
-                    </span>
-                  </div>
-                  <div className="space-y-1 text-sm">
-                    <div className="text-gray-600">
-                      <strong>Trigger:</strong> {alert.trigger}
-                    </div>
-                    <div className="text-gray-600">
-                      <strong>Action:</strong> {alert.action}
-                    </div>
-                  </div>
-                  <div className="flex space-x-2 mt-3">
-                    <Button size="sm" variant="outline">
-                      Editar
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      Test
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Configuración de API */}
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Settings className="w-5 h-5 mr-2" />
-              Configuración de API Keys
-            </CardTitle>
-            <CardDescription>
-              Gestión segura de claves API para integraciones
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div>
-                <Label htmlFor="phantom-api">PhantomBuster API Key</Label>
-                <div className="flex space-x-2 mt-1">
-                  <Input
-                    id="phantom-api"
-                    type="password"
-                    value={apiKeys.phantomBuster}
-                    readOnly
-                    className="flex-1"
-                  />
-                  <Button variant="outline" size="sm">
-                    <CheckCircle className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="linkedin-api">LinkedIn API Key</Label>
-                <div className="flex space-x-2 mt-1">
-                  <Input
-                    id="linkedin-api"
-                    type="password"
-                    value={apiKeys.linkedIn}
-                    readOnly
-                    className="flex-1"
-                  />
-                  <Button variant="outline" size="sm">
-                    <CheckCircle className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="axonaut-api">Axonaut CRM API Key</Label>
-                <div className="flex space-x-2 mt-1">
-                  <Input
-                    id="axonaut-api"
-                    type="password"
-                    value={apiKeys.axonaut}
-                    readOnly
-                    className="flex-1"
-                  />
-                  <Button variant="outline" size="sm">
-                    <CheckCircle className="w-4 h-4" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-6 flex space-x-4">
-              <Button className="bg-europbots-blue hover:bg-europbots-blue-dark">
-                <Settings className="w-4 h-4 mr-2" />
-                Guardar Configuración
-              </Button>
-              <Button variant="outline">
-                <Activity className="w-4 h-4 mr-2" />
-                Probar Conexiones
-              </Button>
-              <Button variant="outline">
-                <Clock className="w-4 h-4 mr-2" />
-                Ver Logs
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+        {/* Tab Content */}
+        {renderTabContent()}
+      </main>
     </div>
   )
 } 

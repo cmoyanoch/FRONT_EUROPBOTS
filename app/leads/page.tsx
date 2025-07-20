@@ -1,296 +1,328 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Users, Star, MessageSquare, Calendar, Building, MapPin, Phone, Mail } from 'lucide-react'
+import { 
+  Users, 
+  Search, 
+  Filter, 
+  Plus, 
+  Mail, 
+  Phone, 
+  MapPin, 
+  Building,
+  Star,
+  MessageSquare,
+  Calendar,
+  TrendingUp,
+  Download,
+  Edit,
+  Trash2
+} from 'lucide-react'
+import FuturisticBackground from '@/components/futuristic-background'
 
 export default function LeadsPage() {
-  const [leads, setLeads] = useState([
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedFilter, setSelectedFilter] = useState('all')
+
+  const leads = [
     {
       id: 1,
-      name: 'Jean Dupont',
-      company: 'Hotel Grand Paris',
-      position: 'Operations Manager',
-      industry: 'HoReCa',
-      location: 'Paris, France',
-      score: 85,
+      name: 'Juan Pérez',
+      email: 'juan.perez@empresa.com',
+      phone: '+34 600 123 456',
+      company: 'Tech Solutions S.L.',
+      position: 'CEO',
+      location: 'Madrid, España',
       status: 'qualified',
-      lastContact: '2024-01-15',
-      email: 'jean.dupont@hotelgrandparis.fr',
-      phone: '+33 1 23 45 67 89',
-      notes: 'Interesado en robots de limpieza para habitaciones'
+      source: 'LinkedIn',
+      lastContact: 'Hace 2 días',
+      score: 85,
+      icon: Building
     },
     {
       id: 2,
-      name: 'Maria Schmidt',
-      company: 'Logistics Solutions GmbH',
-      position: 'Facilities Director',
-      industry: 'Logistics',
-      location: 'Berlin, Germany',
-      score: 92,
-      status: 'meeting_scheduled',
-      lastContact: '2024-01-14',
-      email: 'm.schmidt@logistics-solutions.de',
-      phone: '+49 30 12 34 56 78',
-      notes: 'Demo programada para el 20 de enero'
+      name: 'María García',
+      email: 'maria.garcia@startup.es',
+      phone: '+34 600 789 012',
+      company: 'Innovation Labs',
+      position: 'CTO',
+      location: 'Barcelona, España',
+      status: 'contacted',
+      source: 'Website',
+      lastContact: 'Hace 1 semana',
+      score: 72,
+      icon: Building
     },
     {
       id: 3,
-      name: 'David Wilson',
-      company: 'CleanTech Services',
-      position: 'CEO',
-      industry: 'Cleaning Services',
-      location: 'London, UK',
-      score: 78,
-      status: 'contacted',
-      lastContact: '2024-01-13',
-      email: 'david.wilson@cleantech.co.uk',
-      phone: '+44 20 71 23 45 67',
-      notes: 'Evaluando opciones de automatización'
+      name: 'Carlos López',
+      email: 'carlos.lopez@consulting.com',
+      phone: '+34 600 345 678',
+      company: 'Digital Consulting',
+      position: 'Director de Operaciones',
+      location: 'Valencia, España',
+      status: 'new',
+      source: 'Referral',
+      lastContact: 'Nunca',
+      score: 68,
+      icon: Building
     },
     {
       id: 4,
-      name: 'Sophie Martin',
-      company: 'Healthcare Center Lyon',
-      position: 'Facilities Manager',
-      industry: 'Healthcare',
-      location: 'Lyon, France',
-      score: 88,
+      name: 'Ana Rodríguez',
+      email: 'ana.rodriguez@automation.es',
+      phone: '+34 600 901 234',
+      company: 'AutoTech Solutions',
+      position: 'VP de Ventas',
+      location: 'Sevilla, España',
       status: 'qualified',
-      lastContact: '2024-01-12',
-      email: 's.martin@healthcare-lyon.fr',
-      phone: '+33 4 78 90 12 34',
-      notes: 'Necesita solución para limpieza nocturna'
+      source: 'LinkedIn',
+      lastContact: 'Hace 3 días',
+      score: 91,
+      icon: Building
     }
-  ])
-
-  const [filterStatus, setFilterStatus] = useState('all')
-  const [searchTerm, setSearchTerm] = useState('')
+  ]
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'qualified': return 'text-green-600 bg-green-100'
-      case 'meeting_scheduled': return 'text-blue-600 bg-blue-100'
-      case 'contacted': return 'text-yellow-600 bg-yellow-100'
-      case 'new': return 'text-gray-600 bg-gray-100'
-      default: return 'text-gray-600 bg-gray-100'
+      case 'qualified': return 'text-green-400 bg-green-500/20'
+      case 'contacted': return 'text-blue-400 bg-blue-500/20'
+      case 'new': return 'text-yellow-400 bg-yellow-500/20'
+      default: return 'text-gray-400 bg-gray-500/20'
     }
   }
 
-  const getStatusLabel = (status: string) => {
+  const getStatusText = (status: string) => {
     switch (status) {
-      case 'qualified': return '🎯 Cualificado'
-      case 'meeting_scheduled': return '📅 Reunión Agendada'
-      case 'contacted': return '💬 Contactado'
-      case 'new': return '🆕 Nuevo'
-      default: return '❓ Desconocido'
+      case 'qualified': return 'Calificado'
+      case 'contacted': return 'Contactado'
+      case 'new': return 'Nuevo'
+      default: return 'Desconocido'
     }
-  }
-
-  const getScoreColor = (score: number) => {
-    if (score >= 90) return 'text-green-600'
-    if (score >= 80) return 'text-blue-600'
-    if (score >= 70) return 'text-yellow-600'
-    return 'text-red-600'
   }
 
   const filteredLeads = leads.filter(lead => {
-    const matchesStatus = filterStatus === 'all' || lead.status === filterStatus
     const matchesSearch = lead.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         lead.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         lead.position.toLowerCase().includes(searchTerm.toLowerCase())
-    return matchesStatus && matchesSearch
+                         lead.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         lead.company.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesFilter = selectedFilter === 'all' || lead.status === selectedFilter
+    return matchesSearch && matchesFilter
   })
 
-  const stats = {
-    total: leads.length,
-    qualified: leads.filter(l => l.status === 'qualified').length,
-    meetings: leads.filter(l => l.status === 'meeting_scheduled').length,
-    contacted: leads.filter(l => l.status === 'contacted').length,
-    averageScore: Math.round(leads.reduce((acc, lead) => acc + lead.score, 0) / leads.length)
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen relative">
+      {/* Fondo Futurístico */}
+      <FuturisticBackground />
+      
+      <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            👥 Gestión de Leads
-          </h1>
-          <p className="text-gray-600">
-            Prospectos cualificados y pipeline de ventas
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">
+                Gestión de Leads
+              </h1>
+              <p className="text-gray-300">
+                Administra y sigue tus leads potenciales
+              </p>
+            </div>
+            <div className="flex space-x-3">
+              <button className="bg-white/10 text-white font-medium py-3 px-4 rounded-lg hover:bg-white/20 transition-colors border border-europbots-secondary/20 flex items-center space-x-2">
+                <Download className="w-5 h-5" />
+                <span>Exportar</span>
+              </button>
+              <button className="bg-europbots-secondary text-europbots-primary font-bold py-3 px-6 rounded-lg hover:bg-europbots-secondary/90 transition-colors flex items-center space-x-2">
+                <Plus className="w-5 h-5" />
+                <span>Nuevo Lead</span>
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* Estadísticas */}
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Users className="h-8 w-8 text-blue-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Leads</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-                </div>
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-300">Total Leads</p>
+                <p className="text-2xl font-bold text-white mt-1">1,247</p>
               </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Star className="h-8 w-8 text-green-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Cualificados</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.qualified}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <Calendar className="h-8 w-8 text-blue-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Reuniones</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.meetings}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center">
-                <MessageSquare className="h-8 w-8 text-yellow-600" />
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Score Promedio</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.averageScore}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Filtros y búsqueda */}
-        <Card className="mb-8">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-4">
-              <div className="flex-1">
-                <Input
-                  placeholder="Buscar por nombre, empresa o cargo..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant={filterStatus === 'all' ? 'default' : 'outline'}
-                  onClick={() => setFilterStatus('all')}
-                >
-                  Todos
-                </Button>
-                <Button
-                  variant={filterStatus === 'qualified' ? 'default' : 'outline'}
-                  onClick={() => setFilterStatus('qualified')}
-                >
-                  Cualificados
-                </Button>
-                <Button
-                  variant={filterStatus === 'meeting_scheduled' ? 'default' : 'outline'}
-                  onClick={() => setFilterStatus('meeting_scheduled')}
-                >
-                  Reuniones
-                </Button>
-                <Button
-                  variant={filterStatus === 'contacted' ? 'default' : 'outline'}
-                  onClick={() => setFilterStatus('contacted')}
-                >
-                  Contactados
-                </Button>
+              <div className="bg-blue-500/20 p-3 rounded-lg">
+                <Users className="w-6 h-6 text-blue-400" />
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Lista de leads */}
-        <div className="space-y-4">
-          {filteredLeads.map((lead) => (
-            <Card key={lead.id}>
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-4 mb-3">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">{lead.name}</h3>
-                        <p className="text-sm text-gray-600">{lead.position}</p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(lead.status)}`}>
-                          {getStatusLabel(lead.status)}
-                        </span>
-                        <span className={`flex items-center text-sm font-medium ${getScoreColor(lead.score)}`}>
-                          <Star className="w-4 h-4 mr-1" />
-                          {lead.score}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
-                      <div className="flex items-center space-x-2">
-                        <Building className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-600">{lead.company}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <MapPin className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-600">{lead.location}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm text-gray-600">📊 {lead.industry}</span>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
-                      <div className="flex items-center space-x-2">
-                        <Mail className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-600">{lead.email}</span>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Phone className="w-4 h-4 text-gray-400" />
-                        <span className="text-sm text-gray-600">{lead.phone}</span>
-                      </div>
-                    </div>
-
-                    <div className="bg-gray-50 p-3 rounded-lg">
-                      <p className="text-sm text-gray-700">{lead.notes}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col space-y-2 ml-4">
-                    <Button size="sm" className="bg-europbots-blue hover:bg-europbots-blue-dark">
-                      <MessageSquare className="w-4 h-4 mr-1" />
-                      Contactar
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Calendar className="w-4 h-4 mr-1" />
-                      Agendar
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Star className="w-4 h-4 mr-1" />
-                      Cualificar
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          </div>
+          
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-300">Calificados</p>
+                <p className="text-2xl font-bold text-white mt-1">342</p>
+              </div>
+              <div className="bg-green-500/20 p-3 rounded-lg">
+                <Star className="w-6 h-6 text-green-400" />
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-300">Contactados</p>
+                <p className="text-2xl font-bold text-white mt-1">156</p>
+              </div>
+              <div className="bg-purple-500/20 p-3 rounded-lg">
+                <MessageSquare className="w-6 h-6 text-purple-400" />
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-300">Tasa de Conversión</p>
+                <p className="text-2xl font-bold text-white mt-1">12.5%</p>
+              </div>
+              <div className="bg-orange-500/20 p-3 rounded-lg">
+                <TrendingUp className="w-6 h-6 text-orange-400" />
+              </div>
+            </div>
+          </div>
         </div>
-      </div>
+
+        {/* Filters and Search */}
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6 mb-8">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Buscar leads por nombre, email o empresa..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-white/10 border border-europbots-secondary/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <select
+                value={selectedFilter}
+                onChange={(e) => setSelectedFilter(e.target.value)}
+                className="px-4 py-3 bg-white/10 border border-europbots-secondary/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm"
+              >
+                <option value="all">Todos los estados</option>
+                <option value="new">Nuevos</option>
+                <option value="contacted">Contactados</option>
+                <option value="qualified">Calificados</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Leads Table */}
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-white/5">
+                <tr>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Lead
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Empresa
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Estado
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Origen
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Último Contacto
+                  </th>
+                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Score
+                  </th>
+                  <th className="px-6 py-4 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Acciones
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-europbots-secondary/10">
+                {filteredLeads.map((lead) => {
+                  const Icon = lead.icon
+                  return (
+                    <tr key={lead.id} className="hover:bg-white/5 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="bg-europbots-secondary/20 p-2 rounded-lg mr-3">
+                            <Icon className="w-5 h-5 text-europbots-secondary" />
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium text-white">{lead.name}</div>
+                            <div className="text-sm text-gray-300">{lead.position}</div>
+                            <div className="flex items-center text-xs text-gray-400 mt-1">
+                              <Mail className="w-3 h-3 mr-1" />
+                              {lead.email}
+                            </div>
+                            <div className="flex items-center text-xs text-gray-400 mt-1">
+                              <Phone className="w-3 h-3 mr-1" />
+                              {lead.phone}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-white">{lead.company}</div>
+                        <div className="flex items-center text-xs text-gray-400 mt-1">
+                          <MapPin className="w-3 h-3 mr-1" />
+                          {lead.location}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(lead.status)}`}>
+                          {getStatusText(lead.status)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        {lead.source}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                        {lead.lastContact}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="w-16 bg-gray-700 rounded-full h-2 mr-2">
+                            <div 
+                              className="bg-europbots-secondary h-2 rounded-full" 
+                              style={{ width: `${lead.score}%` }}
+                            ></div>
+                          </div>
+                          <span className="text-sm text-white">{lead.score}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex items-center justify-end space-x-2">
+                          <button className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors">
+                            <Edit className="w-4 h-4 text-gray-300" />
+                          </button>
+                          <button className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors">
+                            <MessageSquare className="w-4 h-4 text-gray-300" />
+                          </button>
+                          <button className="p-2 bg-red-500/20 rounded-lg hover:bg-red-500/30 transition-colors">
+                            <Trash2 className="w-4 h-4 text-red-400" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
     </div>
   )
 } 

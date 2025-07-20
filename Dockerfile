@@ -8,7 +8,7 @@ WORKDIR /app
 
 # Copiar archivos de dependencias
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN npm ci --include=dev
 
 # Reconstruir el código fuente solo cuando sea necesario
 FROM base AS builder
@@ -32,8 +32,15 @@ RUN adduser --system --uid 1001 nextjs
 # Copiar la carpeta public (imágenes y estáticos)
 COPY --from=builder /app/public ./public
 
+# Copiar archivos de la aplicación
+COPY --from=builder --chown=nextjs:nodejs /app/app ./app
+COPY --from=builder --chown=nextjs:nodejs /app/components ./components
+COPY --from=builder --chown=nextjs:nodejs /app/lib ./lib
+COPY --from=builder --chown=nextjs:nodejs /app/middleware.ts ./middleware.ts
+
 # Resto de las copias...
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 

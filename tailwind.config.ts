@@ -36,6 +36,10 @@ const config: Config = {
     'border-europbots-light-gray',
     'focus:border-europbots-secondary',
     'focus:ring-europbots-secondary',
+    // Clases para el menú
+    'text-europbots-blue',
+    'bg-europbots-blue',
+    'hover:bg-europbots-blue-dark',
     // Clases de gradientes
     'from-europbots-primary',
     'via-europbots-dark',
@@ -56,7 +60,8 @@ const config: Config = {
         'europbots-gray': '#454444',         // Gris medio
         'europbots-light-gray': '#DBDBDB',   // Gris claro
         // Mantener compatibilidad con nombres anteriores
-        'europbots-blue': '#222222',
+        'europbots-blue': '#2563eb',        // Azul para el menú
+        'europbots-blue-dark': '#1d4ed8',   // Azul oscuro para hover
         'europbots-light': '#F9F9F9',
         'europbots-yellow': '#D2FF00',
         // Variables CSS para Shadcn UI

@@ -42,34 +42,43 @@ export async function PATCH(
         { status: 403 }
       )
     }
+
+    const userId = params.id
+    const body = await request.json()
+    const { role, is_active } = body
+
+    let updatedUser
+
+    // Actualizar rol si se proporciona
+    if (role) {
+      updatedUser = await AuthService.updateUserRole(userId, role)
+    }
     
-    // No permitir que el administrador se desactive a sí mismo
-    if (user.id === params.id) {
+    // Actualizar estado si se proporciona
+    if (typeof is_active === 'boolean') {
+      updatedUser = await AuthService.toggleUserStatus(userId)
+    }
+
+    if (!updatedUser) {
       return NextResponse.json(
         { 
           success: false, 
-          error: 'No puedes desactivar tu propia cuenta' 
+          error: 'Usuario no encontrado' 
         },
-        { status: 400 }
+        { status: 404 }
       )
     }
-    
-    // Cambiar estado del usuario
-    const updatedUser = await AuthService.toggleUserStatus(params.id)
-    
-    const status = updatedUser.is_active ? 'activado' : 'desactivado'
-    
+
     return NextResponse.json(
       { 
         success: true, 
-        user: updatedUser,
-        message: `Usuario ${status} exitosamente` 
+        user: updatedUser 
       },
       { status: 200 }
     )
     
   } catch (error) {
-    console.error('Error al cambiar estado del usuario:', error)
+    console.error('Error al actualizar usuario:', error)
     
     return NextResponse.json(
       { 
