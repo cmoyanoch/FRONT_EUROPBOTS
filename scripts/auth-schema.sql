@@ -815,3 +815,448 @@ $$;
 -- =====================================================
 -- FIN DE LA MIGRACIÓN
 -- ===================================================== 
+
+-- ============================================================================
+-- ESQUEMA DE LEADS PARA POSTGRESQL - COMPATIBLE CON AUTH-SCHEMA.SQL
+-- ============================================================================
+
+-- =====================================================
+-- TABLA PRINCIPAL DE LEADS
+-- =====================================================
+CREATE TABLE IF NOT EXISTS webapp.leads (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    
+    -- Información básica del perfil
+    profile_url VARCHAR(500) UNIQUE NOT NULL,
+    full_name VARCHAR(255) NOT NULL,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    job_title VARCHAR(255),
+    additional_info TEXT,
+    location VARCHAR(255),
+    connection_degree VARCHAR(10) DEFAULT '2nd' CHECK (connection_degree IN ('1st', '2nd', '3rd+')),
+    profile_image_url TEXT,
+    vmid VARCHAR(255) UNIQUE,
+    
+    -- Información de búsqueda
+    search_query VARCHAR(500),
+    category VARCHAR(100) DEFAULT 'People',
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    shared_connections VARCHAR(255),
+    
+    -- Información de la empresa principal
+    company VARCHAR(255),
+    company_url VARCHAR(500),
+    industry VARCHAR(255),
+    
+    -- Información de la segunda empresa
+    company2 VARCHAR(255),
+    company_url2 VARCHAR(500),
+    job_title2 VARCHAR(255),
+    job_date_range VARCHAR(100),
+    job_date_range2 VARCHAR(100),
+    
+    -- Información educativa
+    school VARCHAR(255),
+    school_degree VARCHAR(255),
+    school_date_range VARCHAR(100),
+    school2 VARCHAR(255),
+    school_degree2 VARCHAR(255),
+    school_date_range2 VARCHAR(100),
+    
+    -- Metadatos del sistema
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'contacted', 'qualified', 'converted')),
+    source VARCHAR(100) DEFAULT 'phantombuster',
+    
+    -- Campos adicionales para integración
+    user_id UUID REFERENCES webapp.users(id) ON DELETE SET NULL,
+    assigned_to UUID REFERENCES webapp.users(id) ON DELETE SET NULL,
+    tags JSONB DEFAULT '[]',
+    notes JSONB DEFAULT '[]',
+    contact_history JSONB DEFAULT '[]'
+);
+
+-- =====================================================
+-- TABLA DE HISTORIAL DE BÚSQUEDAS
+-- =====================================================
+CREATE TABLE IF NOT EXISTS webapp.search_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    search_id VARCHAR(255) UNIQUE NOT NULL,
+    search_query VARCHAR(500) NOT NULL,
+    search_type VARCHAR(20) DEFAULT 'simple' CHECK (search_type IN ('simple', 'advanced')),
+    search_params JSONB,
+    total_results INTEGER DEFAULT 0,
+    status VARCHAR(20) DEFAULT 'running' CHECK (status IN ('running', 'completed', 'failed', 'cancelled')),
+    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    user_id UUID REFERENCES webapp.users(id) ON DELETE SET NULL
+);
+
+-- =====================================================
+-- TABLA DE RELACIÓN LEADS-BÚSQUEDAS
+-- =====================================================
+CREATE TABLE IF NOT EXISTS webapp.lead_search_mapping (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    lead_id UUID NOT NULL REFERENCES webapp.leads(id) ON DELETE CASCADE,
+    search_id VARCHAR(255) NOT NULL REFERENCES webapp.search_history(search_id) ON DELETE CASCADE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    
+    UNIQUE(lead_id, search_id)
+);
+
+-- =====================================================
+-- TABLA DE NOTAS Y COMENTARIOS
+-- =====================================================
+CREATE TABLE IF NOT EXISTS webapp.lead_notes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    lead_id UUID NOT NULL REFERENCES webapp.leads(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES webapp.users(id) ON DELETE SET NULL,
+    note_type VARCHAR(20) DEFAULT 'general' CHECK (note_type IN ('general', 'contact', 'qualification', 'follow_up')),
+    note_text TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =====================================================
+-- TABLA DE ESTADÍSTICAS
+-- =====================================================
+CREATE TABLE IF NOT EXISTS webapp.lead_statistics (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    date DATE NOT NULL UNIQUE,
+    total_leads INTEGER DEFAULT 0,
+    new_leads INTEGER DEFAULT 0,
+    contacted_leads INTEGER DEFAULT 0,
+    qualified_leads INTEGER DEFAULT 0,
+    converted_leads INTEGER DEFAULT 0,
+    search_queries_count INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =====================================================
+-- ÍNDICES PARA OPTIMIZACIÓN
+-- =====================================================
+
+-- Índices para la tabla leads
+CREATE INDEX IF NOT EXISTS idx_leads_profile_url ON webapp.leads(profile_url);
+CREATE INDEX IF NOT EXISTS idx_leads_full_name ON webapp.leads(full_name);
+CREATE INDEX IF NOT EXISTS idx_leads_company ON webapp.leads(company);
+CREATE INDEX IF NOT EXISTS idx_leads_location ON webapp.leads(location);
+CREATE INDEX IF NOT EXISTS idx_leads_job_title ON webapp.leads(job_title);
+CREATE INDEX IF NOT EXISTS idx_leads_connection_degree ON webapp.leads(connection_degree);
+CREATE INDEX IF NOT EXISTS idx_leads_status ON webapp.leads(status);
+CREATE INDEX IF NOT EXISTS idx_leads_created_at ON webapp.leads(created_at);
+CREATE INDEX IF NOT EXISTS idx_leads_search_query ON webapp.leads(search_query);
+CREATE INDEX IF NOT EXISTS idx_leads_vmid ON webapp.leads(vmid);
+CREATE INDEX IF NOT EXISTS idx_leads_user_id ON webapp.leads(user_id);
+CREATE INDEX IF NOT EXISTS idx_leads_assigned_to ON webapp.leads(assigned_to);
+
+-- Índices compuestos para consultas frecuentes
+CREATE INDEX IF NOT EXISTS idx_leads_company_location ON webapp.leads(company, location);
+CREATE INDEX IF NOT EXISTS idx_leads_job_title_location ON webapp.leads(job_title, location);
+CREATE INDEX IF NOT EXISTS idx_leads_status_created_at ON webapp.leads(status, created_at);
+
+-- Índice de texto completo para búsquedas
+CREATE INDEX IF NOT EXISTS idx_leads_fulltext ON webapp.leads USING gin(to_tsvector('english', full_name || ' ' || COALESCE(job_title, '') || ' ' || COALESCE(company, '') || ' ' || COALESCE(location, '') || ' ' || COALESCE(additional_info, '')));
+
+-- Índices para search_history
+CREATE INDEX IF NOT EXISTS idx_search_history_search_id ON webapp.search_history(search_id);
+CREATE INDEX IF NOT EXISTS idx_search_history_search_query ON webapp.search_history(search_query);
+CREATE INDEX IF NOT EXISTS idx_search_history_status ON webapp.search_history(status);
+CREATE INDEX IF NOT EXISTS idx_search_history_started_at ON webapp.search_history(started_at);
+CREATE INDEX IF NOT EXISTS idx_search_history_user_id ON webapp.search_history(user_id);
+
+-- Índices para lead_search_mapping
+CREATE INDEX IF NOT EXISTS idx_lead_search_mapping_lead_id ON webapp.lead_search_mapping(lead_id);
+CREATE INDEX IF NOT EXISTS idx_lead_search_mapping_search_id ON webapp.lead_search_mapping(search_id);
+
+-- Índices para lead_notes
+CREATE INDEX IF NOT EXISTS idx_lead_notes_lead_id ON webapp.lead_notes(lead_id);
+CREATE INDEX IF NOT EXISTS idx_lead_notes_note_type ON webapp.lead_notes(note_type);
+CREATE INDEX IF NOT EXISTS idx_lead_notes_created_at ON webapp.lead_notes(created_at);
+CREATE INDEX IF NOT EXISTS idx_lead_notes_user_id ON webapp.lead_notes(user_id);
+
+-- Índices para lead_statistics
+CREATE INDEX IF NOT EXISTS idx_lead_statistics_date ON webapp.lead_statistics(date);
+
+-- =====================================================
+-- VISTAS ÚTILES
+-- =====================================================
+
+-- Vista de leads con información completa
+CREATE OR REPLACE VIEW webapp.leads_complete AS
+SELECT 
+    l.*,
+    COUNT(ln.id) as notes_count,
+    STRING_AGG(DISTINCT s.search_query, ', ') as search_queries,
+    u.email as created_by_email,
+    u.full_name as created_by_name,
+    au.email as assigned_to_email,
+    au.full_name as assigned_to_name
+FROM webapp.leads l
+LEFT JOIN webapp.lead_notes ln ON l.id = ln.lead_id
+LEFT JOIN webapp.lead_search_mapping lsm ON l.id = lsm.lead_id
+LEFT JOIN webapp.search_history s ON lsm.search_id = s.search_id
+LEFT JOIN webapp.users u ON l.user_id = u.id
+LEFT JOIN webapp.users au ON l.assigned_to = au.id
+GROUP BY l.id, u.email, u.full_name, au.email, au.full_name;
+
+-- Vista de estadísticas diarias
+CREATE OR REPLACE VIEW webapp.daily_lead_statistics AS
+SELECT 
+    DATE(created_at) as date,
+    COUNT(*) as total_leads,
+    COUNT(CASE WHEN status = 'contacted' THEN 1 END) as contacted_leads,
+    COUNT(CASE WHEN status = 'qualified' THEN 1 END) as qualified_leads,
+    COUNT(CASE WHEN status = 'converted' THEN 1 END) as converted_leads,
+    COUNT(DISTINCT company) as unique_companies,
+    COUNT(DISTINCT location) as unique_locations
+FROM webapp.leads
+GROUP BY DATE(created_at)
+ORDER BY date DESC;
+
+-- =====================================================
+-- FUNCIONES
+-- =====================================================
+
+-- Función para actualizar el timestamp de updated_at
+CREATE OR REPLACE FUNCTION webapp.update_leads_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Función para insertar un nuevo lead
+CREATE OR REPLACE FUNCTION webapp.insert_lead(
+    p_profile_url VARCHAR(500),
+    p_full_name VARCHAR(255),
+    p_first_name VARCHAR(100) DEFAULT NULL,
+    p_last_name VARCHAR(100) DEFAULT NULL,
+    p_job_title VARCHAR(255) DEFAULT NULL,
+    p_additional_info TEXT DEFAULT NULL,
+    p_location VARCHAR(255) DEFAULT NULL,
+    p_connection_degree VARCHAR(10) DEFAULT '2nd',
+    p_profile_image_url TEXT DEFAULT NULL,
+    p_vmid VARCHAR(255) DEFAULT NULL,
+    p_search_query VARCHAR(500) DEFAULT NULL,
+    p_category VARCHAR(100) DEFAULT 'People',
+    p_shared_connections VARCHAR(255) DEFAULT NULL,
+    p_company VARCHAR(255) DEFAULT NULL,
+    p_company_url VARCHAR(500) DEFAULT NULL,
+    p_industry VARCHAR(255) DEFAULT NULL,
+    p_company2 VARCHAR(255) DEFAULT NULL,
+    p_company_url2 VARCHAR(500) DEFAULT NULL,
+    p_job_title2 VARCHAR(255) DEFAULT NULL,
+    p_job_date_range VARCHAR(100) DEFAULT NULL,
+    p_job_date_range2 VARCHAR(100) DEFAULT NULL,
+    p_school VARCHAR(255) DEFAULT NULL,
+    p_school_degree VARCHAR(255) DEFAULT NULL,
+    p_school_date_range VARCHAR(100) DEFAULT NULL,
+    p_school2 VARCHAR(255) DEFAULT NULL,
+    p_school_degree2 VARCHAR(255) DEFAULT NULL,
+    p_school_date_range2 VARCHAR(100) DEFAULT NULL,
+    p_search_id VARCHAR(255) DEFAULT NULL,
+    p_user_id UUID DEFAULT NULL
+)
+RETURNS UUID AS $$
+DECLARE
+    lead_id UUID;
+BEGIN
+    -- Insertar o actualizar el lead
+    INSERT INTO webapp.leads (
+        profile_url, full_name, first_name, last_name, job_title, 
+        additional_info, location, connection_degree, profile_image_url, 
+        vmid, search_query, category, shared_connections, company, 
+        company_url, industry, company2, company_url2, job_title2, 
+        job_date_range, job_date_range2, school, school_degree, 
+        school_date_range, school2, school_degree2, school_date_range2,
+        user_id
+    ) VALUES (
+        p_profile_url, p_full_name, p_first_name, p_last_name, p_job_title,
+        p_additional_info, p_location, p_connection_degree, p_profile_image_url,
+        p_vmid, p_search_query, p_category, p_shared_connections, p_company,
+        p_company_url, p_industry, p_company2, p_company_url2, p_job_title2,
+        p_job_date_range, p_job_date_range2, p_school, p_school_degree,
+        p_school_date_range, p_school2, p_school_degree2, p_school_date_range2,
+        p_user_id
+    ) ON CONFLICT (profile_url) DO UPDATE SET
+        full_name = EXCLUDED.full_name,
+        job_title = EXCLUDED.job_title,
+        additional_info = EXCLUDED.additional_info,
+        location = EXCLUDED.location,
+        company = EXCLUDED.company,
+        industry = EXCLUDED.industry,
+        updated_at = CURRENT_TIMESTAMP
+    RETURNING id INTO lead_id;
+    
+    -- Asociar con la búsqueda si se proporciona
+    IF p_search_id IS NOT NULL THEN
+        INSERT INTO webapp.lead_search_mapping (lead_id, search_id) 
+        VALUES (lead_id, p_search_id)
+        ON CONFLICT (lead_id, search_id) DO NOTHING;
+    END IF;
+    
+    RETURN lead_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Función para obtener estadísticas de leads
+CREATE OR REPLACE FUNCTION webapp.get_lead_statistics(p_days INTEGER DEFAULT 30)
+RETURNS TABLE (
+    total_leads BIGINT,
+    active_leads BIGINT,
+    contacted_leads BIGINT,
+    qualified_leads BIGINT,
+    converted_leads BIGINT,
+    unique_companies BIGINT,
+    unique_locations BIGINT,
+    avg_connection_degree NUMERIC
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        COUNT(*)::BIGINT as total_leads,
+        COUNT(CASE WHEN status = 'active' THEN 1 END)::BIGINT as active_leads,
+        COUNT(CASE WHEN status = 'contacted' THEN 1 END)::BIGINT as contacted_leads,
+        COUNT(CASE WHEN status = 'qualified' THEN 1 END)::BIGINT as qualified_leads,
+        COUNT(CASE WHEN status = 'converted' THEN 1 END)::BIGINT as converted_leads,
+        COUNT(DISTINCT company)::BIGINT as unique_companies,
+        COUNT(DISTINCT location)::BIGINT as unique_locations,
+        AVG(CASE 
+            WHEN connection_degree = '1st' THEN 1 
+            WHEN connection_degree = '2nd' THEN 2 
+            ELSE 3 
+        END) as avg_connection_degree
+    FROM webapp.leads 
+    WHERE created_at >= CURRENT_TIMESTAMP - INTERVAL '1 day' * p_days;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =====================================================
+-- TRIGGERS
+-- =====================================================
+
+-- Trigger para actualizar updated_at automáticamente
+DROP TRIGGER IF EXISTS update_leads_updated_at ON webapp.leads;
+CREATE TRIGGER update_leads_updated_at 
+    BEFORE UPDATE ON webapp.leads 
+    FOR EACH ROW EXECUTE FUNCTION webapp.update_leads_updated_at();
+
+DROP TRIGGER IF EXISTS update_lead_notes_updated_at ON webapp.lead_notes;
+CREATE TRIGGER update_lead_notes_updated_at 
+    BEFORE UPDATE ON webapp.lead_notes 
+    FOR EACH ROW EXECUTE FUNCTION webapp.update_updated_at_column();
+
+-- Trigger para actualizar estadísticas automáticamente
+CREATE OR REPLACE FUNCTION webapp.update_lead_statistics()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO webapp.lead_statistics (date, total_leads, new_leads)
+    VALUES (DATE(NEW.created_at), 1, 1)
+    ON CONFLICT (date) DO UPDATE SET
+        total_leads = webapp.lead_statistics.total_leads + 1,
+        new_leads = webapp.lead_statistics.new_leads + 1;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS after_lead_insert ON webapp.leads;
+CREATE TRIGGER after_lead_insert
+    AFTER INSERT ON webapp.leads
+    FOR EACH ROW EXECUTE FUNCTION webapp.update_lead_statistics();
+
+-- =====================================================
+-- INSERCIÓN DE DATOS DE EJEMPLO
+-- =====================================================
+
+-- Insertar lead de ejemplo
+INSERT INTO webapp.leads (
+    profile_url, full_name, first_name, last_name, job_title,
+    additional_info, location, connection_degree, profile_image_url,
+    vmid, search_query, category, shared_connections, company,
+    company_url, industry, company2, company_url2, job_title2,
+    job_date_range, job_date_range2, school, school_degree,
+    school_date_range, school2, school_degree2, school_date_range2
+) VALUES (
+    'https://www.linkedin.com/in/marta-del-castillo-0166618/',
+    'Marta del Castillo',
+    'Marta',
+    'del Castillo',
+    'Chief Executive Officer',
+    'Current: Lider WITH (Women In Tech Spain) - Sustainability & Impact at WITH',
+    'Greater Madrid Metropolitan Area',
+    '2nd',
+    'https://media.licdn.com/dms/image/v2/D4D03AQGK5raqqtMOvg/profile-displayphoto-shrink_100_100/profile-displayphoto-shrink_100_100/0/1706787897612?e=1755734400&v=beta&t=EwVOXK7eHD8-DOzN4YYedSBKJR3RZHEaxrENut60OpE',
+    'ACoAAAGFNNIBG6NSY7r0eTDVs50qb0dAND-9o2k',
+    'CEO tech startup Madrid',
+    'People',
+    '1 mutual connection',
+    'Social Nest Foundation',
+    'https://linkedin.com/company/3508813',
+    'Civic & Social Organization',
+    'Danone Ecosystem 🌍',
+    'https://linkedin.com/company/74009523',
+    'Member Board of Directors',
+    'May 2022 - Present',
+    'Sep 2022 - Present',
+    'Stanford University',
+    'Executive Program Social Entrepreneurship',
+    '2018 - 2018',
+    'Harvard Business School',
+    'Sustainable Business Strategy',
+    'Feb 2022 - Mar 2022'
+) ON CONFLICT (profile_url) DO NOTHING;
+
+-- =====================================================
+-- PERMISOS Y SEGURIDAD
+-- =====================================================
+
+-- Dar permisos al usuario webapp_user para las nuevas tablas
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA webapp TO webapp_user;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA webapp TO webapp_user;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA webapp TO webapp_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA webapp GRANT ALL ON TABLES TO webapp_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA webapp GRANT ALL ON SEQUENCES TO webapp_user;
+
+-- =====================================================
+-- COMENTARIOS
+-- =====================================================
+
+COMMENT ON TABLE webapp.leads IS 'Tabla principal de leads de LinkedIn obtenidos de Phantombuster';
+COMMENT ON TABLE webapp.search_history IS 'Historial de búsquedas realizadas en Phantombuster';
+COMMENT ON TABLE webapp.lead_search_mapping IS 'Relación entre leads y búsquedas';
+COMMENT ON TABLE webapp.lead_notes IS 'Notas y comentarios sobre leads';
+COMMENT ON TABLE webapp.lead_statistics IS 'Estadísticas diarias de leads';
+
+COMMENT ON FUNCTION webapp.insert_lead(VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, TEXT, VARCHAR, VARCHAR, TEXT, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, UUID) IS 'Inserta o actualiza un lead con toda su información';
+COMMENT ON FUNCTION webapp.get_lead_statistics(INTEGER) IS 'Obtiene estadísticas de leads para un período específico';
+
+-- =====================================================
+-- CONSULTAS DE EJEMPLO
+-- =====================================================
+
+/*
+-- Consultar todos los leads
+SELECT * FROM webapp.leads ORDER BY created_at DESC;
+
+-- Consultar leads por empresa
+SELECT * FROM webapp.leads WHERE company ILIKE '%tech%' OR company2 ILIKE '%tech%';
+
+-- Consultar leads por ubicación
+SELECT * FROM webapp.leads WHERE location ILIKE '%Madrid%';
+
+-- Consultar leads por título de trabajo
+SELECT * FROM webapp.leads WHERE job_title ILIKE '%CEO%' OR job_title ILIKE '%Director%';
+
+-- Consultar estadísticas
+SELECT * FROM webapp.get_lead_statistics(30);
+
+-- Búsqueda de texto completo
+SELECT * FROM webapp.leads 
+WHERE to_tsvector('english', full_name || ' ' || COALESCE(job_title, '') || ' ' || COALESCE(company, '')) 
+@@ plainto_tsquery('english', 'CEO tech');
+*/
