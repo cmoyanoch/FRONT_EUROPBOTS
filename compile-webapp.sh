@@ -139,9 +139,9 @@ cleanup_cache() {
         rm -rf .next
     fi
     
-    # Limpiar node_modules si es necesario
+    # Limpiar node_modules y package-lock.json solo en limpieza completa
     if [ "$1" = "full" ]; then
-        print_status "Eliminando node_modules..."
+        print_status "Eliminando node_modules y package-lock.json..."
         rm -rf node_modules
         rm -f package-lock.json
     fi
@@ -153,13 +153,13 @@ cleanup_cache() {
 install_dependencies() {
     print_status "Instalando dependencias..."
     
-    # Verificar si node_modules existe
-    if [ ! -d "node_modules" ]; then
-        print_status "Instalando dependencias de Node.js..."
+    # Verificar si existe package-lock.json
+    if [ -f "package-lock.json" ]; then
+        print_status "Usando npm ci (instalación limpia)..."
         npm ci --include=dev
     else
-        print_status "Verificando dependencias..."
-        npm ci --include=dev
+        print_status "Usando npm install (generando package-lock.json)..."
+        npm install --include=dev
     fi
     
     print_success "Dependencias instaladas correctamente"
