@@ -4,6 +4,11 @@ const nextConfig = {
     images: {
         domains: ['localhost'],
     },
+    // Configuración para páginas dinámicas
+    experimental: {
+        // Deshabilitar generación estática para páginas con cookies
+        staticPageGenerationTimeout: 0,
+    },
     // Configuración de caché para assets estáticos
     generateBuildId: async () => {
         return `build-${Date.now()}`

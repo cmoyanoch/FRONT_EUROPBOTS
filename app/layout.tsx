@@ -5,6 +5,10 @@ import Menu from '../components/menu'
 import { cookies } from 'next/headers'
 import { AuthService } from '@/lib/auth'
 
+// Forzar renderizado dinámico
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 // Fuentes oficiales de Europbots
 const redHatDisplay = Red_Hat_Display({ 
   subsets: ['latin'],
