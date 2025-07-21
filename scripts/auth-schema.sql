@@ -1260,3 +1260,864 @@ SELECT * FROM webapp.leads
 WHERE to_tsvector('english', full_name || ' ' || COALESCE(job_title, '') || ' ' || COALESCE(company, '')) 
 @@ plainto_tsquery('english', 'CEO tech');
 */
+
+-- ============================================================================
+-- ESQUEMA DE CONFIGURACIÓN DE WEBHOOKS
+-- ============================================================================
+
+-- ============================================================================
+-- ESQUEMA DE CONFIGURACIÓN DE WEBHOOKS - AGREGAR AL AUTH-SCHEMA.SQL
+-- ============================================================================
+
+-- =====================================================
+-- TABLA: webhook_config
+-- Descripción: Configuración de webhooks por usuario
+-- =====================================================
+CREATE TABLE IF NOT EXISTS webapp.webhook_config (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES webapp.users(id) ON DELETE CASCADE,
+  webhook_url VARCHAR(500) NOT NULL,
+  webhook_type VARCHAR(50) DEFAULT 'search_bot' CHECK (webhook_type IN ('search_bot', 'lead_notification', 'automation', 'general')),
+  is_active BOOLEAN DEFAULT true,
+  last_test_at TIMESTAMP,
+  last_test_status VARCHAR(20) CHECK (last_test_status IN ('success', 'failed', 'timeout', 'error')),
+  test_response_time_ms INTEGER,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  UNIQUE(user_id, webhook_type)
+);
+
+-- =====================================================
+-- TABLA: webhook_logs
+-- Descripción: Log de eventos de webhooks para auditoría
+-- =====================================================
+CREATE TABLE IF NOT EXISTS webapp.webhook_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  webhook_config_id UUID REFERENCES webapp.webhook_config(id) ON DELETE CASCADE,
+  event_type VARCHAR(50) NOT NULL,
+  payload JSONB,
+  response_status INTEGER,
+  response_body TEXT,
+  response_time_ms INTEGER,
+  error_message TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =====================================================
+-- ÍNDICES PARA WEBHOOKS
+-- =====================================================
+
+-- Índices para webhook_config
+CREATE INDEX IF NOT EXISTS idx_webhook_config_user_id ON webapp.webhook_config(user_id);
+CREATE INDEX IF NOT EXISTS idx_webhook_config_webhook_type ON webapp.webhook_config(webhook_type);
+CREATE INDEX IF NOT EXISTS idx_webhook_config_is_active ON webapp.webhook_config(is_active);
+CREATE INDEX IF NOT EXISTS idx_webhook_config_last_test_at ON webapp.webhook_config(last_test_at);
+
+-- Índices para webhook_logs
+CREATE INDEX IF NOT EXISTS idx_webhook_logs_webhook_config_id ON webapp.webhook_logs(webhook_config_id);
+CREATE INDEX IF NOT EXISTS idx_webhook_logs_event_type ON webapp.webhook_logs(event_type);
+CREATE INDEX IF NOT EXISTS idx_webhook_logs_created_at ON webapp.webhook_logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_webhook_logs_response_status ON webapp.webhook_logs(response_status);
+
+-- =====================================================
+-- FUNCIONES PARA WEBHOOKS
+-- =====================================================
+
+-- Función para guardar o actualizar configuración de webhook
+CREATE OR REPLACE FUNCTION webapp.save_webhook_config(
+    p_user_id UUID,
+    p_webhook_url VARCHAR(500),
+    p_webhook_type VARCHAR(50) DEFAULT 'search_bot'
+)
+RETURNS UUID AS $$
+DECLARE
+    config_id UUID;
+BEGIN
+    INSERT INTO webapp.webhook_config (user_id, webhook_url, webhook_type)
+    VALUES (p_user_id, p_webhook_url, p_webhook_type)
+    ON CONFLICT (user_id, webhook_type) DO UPDATE SET
+        webhook_url = EXCLUDED.webhook_url,
+        updated_at = CURRENT_TIMESTAMP
+    RETURNING id INTO config_id;
+    
+    RETURN config_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Función para obtener configuración de webhook por usuario
+CREATE OR REPLACE FUNCTION webapp.get_webhook_config(p_user_id UUID, p_webhook_type VARCHAR(50) DEFAULT 'search_bot')
+RETURNS TABLE (
+    id UUID,
+    webhook_url VARCHAR(500),
+    is_active BOOLEAN,
+    last_test_at TIMESTAMP,
+    last_test_status VARCHAR(20),
+    test_response_time_ms INTEGER,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        wc.id,
+        wc.webhook_url,
+        wc.is_active,
+        wc.last_test_at,
+        wc.last_test_status,
+        wc.test_response_time_ms,
+        wc.created_at,
+        wc.updated_at
+    FROM webapp.webhook_config wc
+    WHERE wc.user_id = p_user_id 
+    AND wc.webhook_type = p_webhook_type
+    AND wc.is_active = true;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Función para registrar log de webhook
+CREATE OR REPLACE FUNCTION webapp.log_webhook_event(
+    p_webhook_config_id UUID,
+    p_event_type VARCHAR(50),
+    p_payload JSONB DEFAULT NULL,
+    p_response_status INTEGER DEFAULT NULL,
+    p_response_body TEXT DEFAULT NULL,
+    p_response_time_ms INTEGER DEFAULT NULL,
+    p_error_message TEXT DEFAULT NULL
+)
+RETURNS UUID AS $$
+DECLARE
+    log_id UUID;
+BEGIN
+    INSERT INTO webapp.webhook_logs (
+        webhook_config_id, 
+        event_type, 
+        payload, 
+        response_status, 
+        response_body, 
+        response_time_ms, 
+        error_message
+    )
+    VALUES (
+        p_webhook_config_id,
+        p_event_type,
+        p_payload,
+        p_response_status,
+        p_response_body,
+        p_response_time_ms,
+        p_error_message
+    )
+    RETURNING id INTO log_id;
+    
+    RETURN log_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Función para actualizar estado de prueba de webhook
+CREATE OR REPLACE FUNCTION webapp.update_webhook_test_status(
+    p_webhook_config_id UUID,
+    p_test_status VARCHAR(20),
+    p_response_time_ms INTEGER DEFAULT NULL
+)
+RETURNS BOOLEAN AS $$
+BEGIN
+    UPDATE webapp.webhook_config 
+    SET 
+        last_test_at = CURRENT_TIMESTAMP,
+        last_test_status = p_test_status,
+        test_response_time_ms = p_response_time_ms,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = p_webhook_config_id;
+    
+    RETURN FOUND;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =====================================================
+-- TRIGGERS PARA WEBHOOKS
+-- =====================================================
+
+-- Trigger para actualizar updated_at automáticamente en webhook_config
+DROP TRIGGER IF EXISTS update_webhook_config_updated_at ON webapp.webhook_config;
+CREATE TRIGGER update_webhook_config_updated_at 
+    BEFORE UPDATE ON webapp.webhook_config 
+    FOR EACH ROW EXECUTE FUNCTION webapp.update_updated_at_column();
+
+-- =====================================================
+-- VISTAS PARA WEBHOOKS
+-- =====================================================
+
+-- Vista de configuraciones de webhook activas
+CREATE OR REPLACE VIEW webapp.active_webhook_configs AS
+SELECT 
+    wc.id,
+    wc.user_id,
+    u.email as user_email,
+    u.full_name as user_name,
+    wc.webhook_url,
+    wc.webhook_type,
+    wc.is_active,
+    wc.last_test_at,
+    wc.last_test_status,
+    wc.test_response_time_ms,
+    wc.created_at,
+    wc.updated_at
+FROM webapp.webhook_config wc
+JOIN webapp.users u ON wc.user_id = u.id
+WHERE wc.is_active = true;
+
+-- Vista de logs de webhook recientes
+CREATE OR REPLACE VIEW webapp.recent_webhook_logs AS
+SELECT 
+    wl.id,
+    wl.webhook_config_id,
+    wc.webhook_url,
+    wc.webhook_type,
+    u.email as user_email,
+    wl.event_type,
+    wl.response_status,
+    wl.response_time_ms,
+    wl.error_message,
+    wl.created_at
+FROM webapp.webhook_logs wl
+JOIN webapp.webhook_config wc ON wl.webhook_config_id = wc.id
+JOIN webapp.users u ON wc.user_id = u.id
+WHERE wl.created_at >= CURRENT_TIMESTAMP - INTERVAL '24 hours'
+ORDER BY wl.created_at DESC;
+
+-- =====================================================
+-- COMENTARIOS PARA WEBHOOKS
+-- =====================================================
+
+COMMENT ON TABLE webapp.webhook_config IS 'Configuración de webhooks por usuario y tipo';
+COMMENT ON TABLE webapp.webhook_logs IS 'Log de eventos de webhooks para auditoría';
+
+COMMENT ON FUNCTION webapp.save_webhook_config(UUID, VARCHAR, VARCHAR) IS 'Guarda o actualiza la configuración de webhook de un usuario';
+COMMENT ON FUNCTION webapp.get_webhook_config(UUID, VARCHAR) IS 'Obtiene la configuración de webhook de un usuario';
+COMMENT ON FUNCTION webapp.log_webhook_event(UUID, VARCHAR, JSONB, INTEGER, TEXT, INTEGER, TEXT) IS 'Registra un evento de webhook en el log';
+COMMENT ON FUNCTION webapp.update_webhook_test_status(UUID, VARCHAR, INTEGER) IS 'Actualiza el estado de la última prueba de webhook';
+
+-- =====================================================
+-- CONSULTAS DE EJEMPLO PARA WEBHOOKS
+-- =====================================================
+
+/*
+-- Obtener configuración de webhook de un usuario
+SELECT * FROM webapp.get_webhook_config('user-uuid-here', 'search_bot');
+
+-- Guardar configuración de webhook
+SELECT webapp.save_webhook_config('user-uuid-here', 'https://mi-bot.com/webhook', 'search_bot');
+
+-- Ver configuraciones activas
+SELECT * FROM webapp.active_webhook_configs;
+
+-- Ver logs recientes
+SELECT * FROM webapp.recent_webhook_logs;
+
+-- Registrar evento de prueba
+SELECT webapp.log_webhook_event(
+    'webhook-config-uuid-here',
+    'test_connection',
+    '{"test": true}'::jsonb,
+    200,
+    'OK',
+    150,
+    NULL
+);
+
+-- Actualizar estado de prueba
+SELECT webapp.update_webhook_test_status(
+    'webhook-config-uuid-here',
+    'success',
+    150
+);
+*/
+
+
+-- =====================================================
+-- TABLA: webhook_config
+-- Descripción: Configuración de webhooks por usuario
+-- =====================================================
+CREATE TABLE IF NOT EXISTS webapp.webhook_config (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES webapp.users(id) ON DELETE CASCADE,
+  webhook_url VARCHAR(500) NOT NULL,
+  webhook_type VARCHAR(50) DEFAULT 'search_bot' CHECK (webhook_type IN ('search_bot', 'lead_notification', 'automation', 'general')),
+  is_active BOOLEAN DEFAULT true,
+  last_test_at TIMESTAMP,
+  last_test_status VARCHAR(20) CHECK (last_test_status IN ('success', 'failed', 'timeout', 'error')),
+  test_response_time_ms INTEGER,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  UNIQUE(user_id, webhook_type)
+);
+
+-- =====================================================
+-- TABLA: webhook_logs
+-- Descripción: Log de eventos de webhooks para auditoría
+-- =====================================================
+CREATE TABLE IF NOT EXISTS webapp.webhook_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  webhook_config_id UUID REFERENCES webapp.webhook_config(id) ON DELETE CASCADE,
+  event_type VARCHAR(50) NOT NULL,
+  payload JSONB,
+  response_status INTEGER,
+  response_body TEXT,
+  response_time_ms INTEGER,
+  error_message TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =====================================================
+-- ÍNDICES PARA WEBHOOKS
+-- =====================================================
+
+-- Índices para webhook_config
+CREATE INDEX IF NOT EXISTS idx_webhook_config_user_id ON webapp.webhook_config(user_id);
+CREATE INDEX IF NOT EXISTS idx_webhook_config_webhook_type ON webapp.webhook_config(webhook_type);
+CREATE INDEX IF NOT EXISTS idx_webhook_config_is_active ON webapp.webhook_config(is_active);
+CREATE INDEX IF NOT EXISTS idx_webhook_config_last_test_at ON webapp.webhook_config(last_test_at);
+
+-- Índices para webhook_logs
+CREATE INDEX IF NOT EXISTS idx_webhook_logs_webhook_config_id ON webapp.webhook_logs(webhook_config_id);
+CREATE INDEX IF NOT EXISTS idx_webhook_logs_event_type ON webapp.webhook_logs(event_type);
+CREATE INDEX IF NOT EXISTS idx_webhook_logs_created_at ON webapp.webhook_logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_webhook_logs_response_status ON webapp.webhook_logs(response_status);
+
+-- =====================================================
+-- FUNCIONES PARA WEBHOOKS
+-- =====================================================
+
+-- Función para guardar o actualizar configuración de webhook
+CREATE OR REPLACE FUNCTION webapp.save_webhook_config(
+    p_user_id UUID,
+    p_webhook_url VARCHAR(500),
+    p_webhook_type VARCHAR(50) DEFAULT 'search_bot'
+)
+RETURNS UUID AS $$
+DECLARE
+    config_id UUID;
+BEGIN
+    INSERT INTO webapp.webhook_config (user_id, webhook_url, webhook_type)
+    VALUES (p_user_id, p_webhook_url, p_webhook_type)
+    ON CONFLICT (user_id, webhook_type) DO UPDATE SET
+        webhook_url = EXCLUDED.webhook_url,
+        updated_at = CURRENT_TIMESTAMP
+    RETURNING id INTO config_id;
+    
+    RETURN config_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Función para obtener configuración de webhook por usuario
+CREATE OR REPLACE FUNCTION webapp.get_webhook_config(p_user_id UUID, p_webhook_type VARCHAR(50) DEFAULT 'search_bot')
+RETURNS TABLE (
+    id UUID,
+    webhook_url VARCHAR(500),
+    is_active BOOLEAN,
+    last_test_at TIMESTAMP,
+    last_test_status VARCHAR(20),
+    test_response_time_ms INTEGER,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        wc.id,
+        wc.webhook_url,
+        wc.is_active,
+        wc.last_test_at,
+        wc.last_test_status,
+        wc.test_response_time_ms,
+        wc.created_at,
+        wc.updated_at
+    FROM webapp.webhook_config wc
+    WHERE wc.user_id = p_user_id 
+    AND wc.webhook_type = p_webhook_type
+    AND wc.is_active = true;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Función para registrar log de webhook
+CREATE OR REPLACE FUNCTION webapp.log_webhook_event(
+    p_webhook_config_id UUID,
+    p_event_type VARCHAR(50),
+    p_payload JSONB DEFAULT NULL,
+    p_response_status INTEGER DEFAULT NULL,
+    p_response_body TEXT DEFAULT NULL,
+    p_response_time_ms INTEGER DEFAULT NULL,
+    p_error_message TEXT DEFAULT NULL
+)
+RETURNS UUID AS $$
+DECLARE
+    log_id UUID;
+BEGIN
+    INSERT INTO webapp.webhook_logs (
+        webhook_config_id, 
+        event_type, 
+        payload, 
+        response_status, 
+        response_body, 
+        response_time_ms, 
+        error_message
+    )
+    VALUES (
+        p_webhook_config_id,
+        p_event_type,
+        p_payload,
+        p_response_status,
+        p_response_body,
+        p_response_time_ms,
+        p_error_message
+    )
+    RETURNING id INTO log_id;
+    
+    RETURN log_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Función para actualizar estado de prueba de webhook
+CREATE OR REPLACE FUNCTION webapp.update_webhook_test_status(
+    p_webhook_config_id UUID,
+    p_test_status VARCHAR(20),
+    p_response_time_ms INTEGER DEFAULT NULL
+)
+RETURNS BOOLEAN AS $$
+BEGIN
+    UPDATE webapp.webhook_config 
+    SET 
+        last_test_at = CURRENT_TIMESTAMP,
+        last_test_status = p_test_status,
+        test_response_time_ms = p_response_time_ms,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = p_webhook_config_id;
+    
+    RETURN FOUND;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =====================================================
+-- TRIGGERS PARA WEBHOOKS
+-- =====================================================
+
+-- Trigger para actualizar updated_at automáticamente en webhook_config
+DROP TRIGGER IF EXISTS update_webhook_config_updated_at ON webapp.webhook_config;
+CREATE TRIGGER update_webhook_config_updated_at 
+    BEFORE UPDATE ON webapp.webhook_config 
+    FOR EACH ROW EXECUTE FUNCTION webapp.update_updated_at_column();
+
+-- =====================================================
+-- VISTAS PARA WEBHOOKS
+-- =====================================================
+
+-- Vista de configuraciones de webhook activas
+CREATE OR REPLACE VIEW webapp.active_webhook_configs AS
+SELECT 
+    wc.id,
+    wc.user_id,
+    u.email as user_email,
+    u.full_name as user_name,
+    wc.webhook_url,
+    wc.webhook_type,
+    wc.is_active,
+    wc.last_test_at,
+    wc.last_test_status,
+    wc.test_response_time_ms,
+    wc.created_at,
+    wc.updated_at
+FROM webapp.webhook_config wc
+JOIN webapp.users u ON wc.user_id = u.id
+WHERE wc.is_active = true;
+
+-- Vista de logs de webhook recientes
+CREATE OR REPLACE VIEW webapp.recent_webhook_logs AS
+SELECT 
+    wl.id,
+    wl.webhook_config_id,
+    wc.webhook_url,
+    wc.webhook_type,
+    u.email as user_email,
+    wl.event_type,
+    wl.response_status,
+    wl.response_time_ms,
+    wl.error_message,
+    wl.created_at
+FROM webapp.webhook_logs wl
+JOIN webapp.webhook_config wc ON wl.webhook_config_id = wc.id
+JOIN webapp.users u ON wc.user_id = u.id
+WHERE wl.created_at >= CURRENT_TIMESTAMP - INTERVAL '24 hours'
+ORDER BY wl.created_at DESC;
+
+-- =====================================================
+-- COMENTARIOS PARA WEBHOOKS
+-- =====================================================
+
+COMMENT ON TABLE webapp.webhook_config IS 'Configuración de webhooks por usuario y tipo';
+COMMENT ON TABLE webapp.webhook_logs IS 'Log de eventos de webhooks para auditoría';
+
+COMMENT ON FUNCTION webapp.save_webhook_config(UUID, VARCHAR, VARCHAR) IS 'Guarda o actualiza la configuración de webhook de un usuario';
+COMMENT ON FUNCTION webapp.get_webhook_config(UUID, VARCHAR) IS 'Obtiene la configuración de webhook de un usuario';
+COMMENT ON FUNCTION webapp.log_webhook_event(UUID, VARCHAR, JSONB, INTEGER, TEXT, INTEGER, TEXT) IS 'Registra un evento de webhook en el log';
+COMMENT ON FUNCTION webapp.update_webhook_test_status(UUID, VARCHAR, INTEGER) IS 'Actualiza el estado de la última prueba de webhook';
+
+-- =====================================================
+-- CONSULTAS DE EJEMPLO PARA WEBHOOKS
+-- =====================================================
+
+/*
+-- Obtener configuración de webhook de un usuario
+SELECT * FROM webapp.get_webhook_config('user-uuid-here', 'search_bot');
+
+-- Guardar configuración de webhook
+SELECT webapp.save_webhook_config('user-uuid-here', 'https://mi-bot.com/webhook', 'search_bot');
+
+-- Ver configuraciones activas
+SELECT * FROM webapp.active_webhook_configs;
+
+-- Ver logs recientes
+SELECT * FROM webapp.recent_webhook_logs;
+
+-- Registrar evento de prueba
+SELECT webapp.log_webhook_event(
+    'webhook-config-uuid-here',
+    'test_connection',
+    '{"test": true}'::jsonb,
+    200,
+    'OK',
+    150,
+    NULL
+);
+
+-- Actualizar estado de prueba
+SELECT webapp.update_webhook_test_status(
+    'webhook-config-uuid-here',
+    'success',
+    150
+);
+*/
+
+-- ============================================================================
+-- ESQUEMA DE CONFIGURACIÓN DE WEBHOOKS
+-- ============================================================================
+
+-- =====================================================
+-- TABLA: webhook_config
+-- Descripción: Configuración de webhooks por usuario
+-- =====================================================
+CREATE TABLE IF NOT EXISTS webapp.webhook_config (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES webapp.users(id) ON DELETE CASCADE,
+  webhook_url VARCHAR(500) NOT NULL,
+  webhook_type VARCHAR(50) DEFAULT 'search_bot' CHECK (webhook_type IN ('search_bot', 'lead_notification', 'automation', 'general')),
+  is_active BOOLEAN DEFAULT true,
+  last_test_at TIMESTAMP,
+  last_test_status VARCHAR(20) CHECK (last_test_status IN ('success', 'failed', 'timeout', 'error')),
+  test_response_time_ms INTEGER,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  UNIQUE(user_id, webhook_type)
+);
+
+-- =====================================================
+-- TABLA: webhook_logs
+-- Descripción: Log de eventos de webhooks para auditoría
+-- =====================================================
+CREATE TABLE IF NOT EXISTS webapp.webhook_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  webhook_config_id UUID REFERENCES webapp.webhook_config(id) ON DELETE CASCADE,
+  event_type VARCHAR(50) NOT NULL,
+  payload JSONB,
+  response_status INTEGER,
+  response_body TEXT,
+  response_time_ms INTEGER,
+  error_message TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =====================================================
+-- ÍNDICES PARA WEBHOOKS
+-- =====================================================
+
+-- Índices para webhook_config
+CREATE INDEX IF NOT EXISTS idx_webhook_config_user_id ON webapp.webhook_config(user_id);
+CREATE INDEX IF NOT EXISTS idx_webhook_config_webhook_type ON webapp.webhook_config(webhook_type);
+CREATE INDEX IF NOT EXISTS idx_webhook_config_is_active ON webapp.webhook_config(is_active);
+CREATE INDEX IF NOT EXISTS idx_webhook_config_last_test_at ON webapp.webhook_config(last_test_at);
+
+-- Índices para webhook_logs
+CREATE INDEX IF NOT EXISTS idx_webhook_logs_webhook_config_id ON webapp.webhook_logs(webhook_config_id);
+CREATE INDEX IF NOT EXISTS idx_webhook_logs_event_type ON webapp.webhook_logs(event_type);
+CREATE INDEX IF NOT EXISTS idx_webhook_logs_created_at ON webapp.webhook_logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_webhook_logs_response_status ON webapp.webhook_logs(response_status);
+
+-- =====================================================
+-- FUNCIONES PARA WEBHOOKS
+-- =====================================================
+
+-- Función para guardar o actualizar configuración de webhook
+CREATE OR REPLACE FUNCTION webapp.save_webhook_config(
+    p_user_id UUID,
+    p_webhook_url VARCHAR(500),
+    p_webhook_type VARCHAR(50) DEFAULT 'search_bot'
+)
+RETURNS UUID AS $$
+DECLARE
+    config_id UUID;
+BEGIN
+    INSERT INTO webapp.webhook_config (user_id, webhook_url, webhook_type)
+    VALUES (p_user_id, p_webhook_url, p_webhook_type)
+    ON CONFLICT (user_id, webhook_type) DO UPDATE SET
+        webhook_url = EXCLUDED.webhook_url,
+        updated_at = CURRENT_TIMESTAMP
+    RETURNING id INTO config_id;
+    
+    RETURN config_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Función para obtener configuración de webhook por usuario
+CREATE OR REPLACE FUNCTION webapp.get_webhook_config(p_user_id UUID, p_webhook_type VARCHAR(50) DEFAULT 'search_bot')
+RETURNS TABLE (
+    id UUID,
+    webhook_url VARCHAR(500),
+    is_active BOOLEAN,
+    last_test_at TIMESTAMP,
+    last_test_status VARCHAR(20),
+    test_response_time_ms INTEGER,
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        wc.id,
+        wc.webhook_url,
+        wc.is_active,
+        wc.last_test_at,
+        wc.last_test_status,
+        wc.test_response_time_ms,
+        wc.created_at,
+        wc.updated_at
+    FROM webapp.webhook_config wc
+    WHERE wc.user_id = p_user_id 
+    AND wc.webhook_type = p_webhook_type
+    AND wc.is_active = true;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Función para registrar log de webhook
+CREATE OR REPLACE FUNCTION webapp.log_webhook_event(
+    p_webhook_config_id UUID,
+    p_event_type VARCHAR(50),
+    p_payload JSONB DEFAULT NULL,
+    p_response_status INTEGER DEFAULT NULL,
+    p_response_body TEXT DEFAULT NULL,
+    p_response_time_ms INTEGER DEFAULT NULL,
+    p_error_message TEXT DEFAULT NULL
+)
+RETURNS UUID AS $$
+DECLARE
+    log_id UUID;
+BEGIN
+    INSERT INTO webapp.webhook_logs (
+        webhook_config_id, 
+        event_type, 
+        payload, 
+        response_status, 
+        response_body, 
+        response_time_ms, 
+        error_message
+    )
+    VALUES (
+        p_webhook_config_id,
+        p_event_type,
+        p_payload,
+        p_response_status,
+        p_response_body,
+        p_response_time_ms,
+        p_error_message
+    )
+    RETURNING id INTO log_id;
+    
+    RETURN log_id;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Función para actualizar estado de prueba de webhook
+CREATE OR REPLACE FUNCTION webapp.update_webhook_test_status(
+    p_webhook_config_id UUID,
+    p_test_status VARCHAR(20),
+    p_response_time_ms INTEGER DEFAULT NULL
+)
+RETURNS BOOLEAN AS $$
+BEGIN
+    UPDATE webapp.webhook_config 
+    SET 
+        last_test_at = CURRENT_TIMESTAMP,
+        last_test_status = p_test_status,
+        test_response_time_ms = p_response_time_ms,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE id = p_webhook_config_id;
+    
+    RETURN FOUND;
+END;
+$$ LANGUAGE plpgsql;
+
+-- =====================================================
+-- TRIGGERS PARA WEBHOOKS
+-- =====================================================
+
+-- Trigger para actualizar updated_at automáticamente en webhook_config
+DROP TRIGGER IF EXISTS update_webhook_config_updated_at ON webapp.webhook_config;
+CREATE TRIGGER update_webhook_config_updated_at 
+    BEFORE UPDATE ON webapp.webhook_config 
+    FOR EACH ROW EXECUTE FUNCTION webapp.update_updated_at_column();
+
+-- =====================================================
+-- VISTAS PARA WEBHOOKS
+-- =====================================================
+
+-- Vista de configuraciones de webhook activas
+CREATE OR REPLACE VIEW webapp.active_webhook_configs AS
+SELECT 
+    wc.id,
+    wc.user_id,
+    u.email as user_email,
+    u.full_name as user_name,
+    wc.webhook_url,
+    wc.webhook_type,
+    wc.is_active,
+    wc.last_test_at,
+    wc.last_test_status,
+    wc.test_response_time_ms,
+    wc.created_at,
+    wc.updated_at
+FROM webapp.webhook_config wc
+JOIN webapp.users u ON wc.user_id = u.id
+WHERE wc.is_active = true;
+
+-- Vista de logs de webhook recientes
+CREATE OR REPLACE VIEW webapp.recent_webhook_logs AS
+SELECT 
+    wl.id,
+    wl.webhook_config_id,
+    wc.webhook_url,
+    wc.webhook_type,
+    u.email as user_email,
+    wl.event_type,
+    wl.response_status,
+    wl.response_time_ms,
+    wl.error_message,
+    wl.created_at
+FROM webapp.webhook_logs wl
+JOIN webapp.webhook_config wc ON wl.webhook_config_id = wc.id
+JOIN webapp.users u ON wc.user_id = u.id
+WHERE wl.created_at >= CURRENT_TIMESTAMP - INTERVAL '24 hours'
+ORDER BY wl.created_at DESC;
+
+-- =====================================================
+-- COMENTARIOS PARA WEBHOOKS
+-- =====================================================
+
+COMMENT ON TABLE webapp.webhook_config IS 'Configuración de webhooks por usuario y tipo';
+COMMENT ON TABLE webapp.webhook_logs IS 'Log de eventos de webhooks para auditoría';
+
+COMMENT ON FUNCTION webapp.save_webhook_config(UUID, VARCHAR, VARCHAR) IS 'Guarda o actualiza la configuración de webhook de un usuario';
+COMMENT ON FUNCTION webapp.get_webhook_config(UUID, VARCHAR) IS 'Obtiene la configuración de webhook de un usuario';
+COMMENT ON FUNCTION webapp.log_webhook_event(UUID, VARCHAR, JSONB, INTEGER, TEXT, INTEGER, TEXT) IS 'Registra un evento de webhook en el log';
+COMMENT ON FUNCTION webapp.update_webhook_test_status(UUID, VARCHAR, INTEGER) IS 'Actualiza el estado de la última prueba de webhook';
+
+-- =====================================================
+-- CONSULTAS DE EJEMPLO PARA WEBHOOKS
+-- =====================================================
+
+/*
+-- Obtener configuración de webhook de un usuario
+SELECT * FROM webapp.get_webhook_config('user-uuid-here', 'search_bot');
+
+-- Guardar configuración de webhook
+SELECT webapp.save_webhook_config('user-uuid-here', 'https://mi-bot.com/webhook', 'search_bot');
+
+-- Ver configuraciones activas
+SELECT * FROM webapp.active_webhook_configs;
+
+-- Ver logs recientes
+SELECT * FROM webapp.recent_webhook_logs;
+
+-- Registrar evento de prueba
+SELECT webapp.log_webhook_event(
+    'webhook-config-uuid-here',
+    'test_connection',
+    '{"test": true}'::jsonb,
+    200,
+    'OK',
+    150,
+    NULL
+);
+
+-- Actualizar estado de prueba
+SELECT webapp.update_webhook_test_status(
+    'webhook-config-uuid-here',
+    'success',
+    150
+);
+*/
+
+-- =====================================================
+-- VERIFICACIÓN FINAL DE LA MIGRACIÓN COMPLETA
+-- =====================================================
+
+-- Verificar que todas las tablas se crearon correctamente
+DO $$
+DECLARE
+    table_count INTEGER;
+    function_count INTEGER;
+    view_count INTEGER;
+    leads_count INTEGER;
+    webhook_config_count INTEGER;
+    webhook_logs_count INTEGER;
+BEGIN
+    -- Contar tablas creadas
+    SELECT COUNT(*) INTO table_count
+    FROM information_schema.tables 
+    WHERE table_schema = 'webapp';
+    
+    -- Contar funciones creadas
+    SELECT COUNT(*) INTO function_count
+    FROM information_schema.routines 
+    WHERE routine_schema = 'webapp';
+    
+    -- Contar vistas creadas
+    SELECT COUNT(*) INTO view_count
+    FROM information_schema.views 
+    WHERE table_schema = 'webapp';
+    
+    -- Contar leads de ejemplo
+    SELECT COUNT(*) INTO leads_count
+    FROM webapp.leads;
+    
+    -- Contar configuraciones de webhook
+    SELECT COUNT(*) INTO webhook_config_count
+    FROM webapp.webhook_config;
+    
+    -- Contar logs de webhook
+    SELECT COUNT(*) INTO webhook_logs_count
+    FROM webapp.webhook_logs;
+    
+    RAISE NOTICE '=== MIGRACIÓN COMPLETA EUROPBOTS ===';
+    RAISE NOTICE 'Tablas creadas: %', table_count;
+    RAISE NOTICE 'Funciones creadas: %', function_count;
+    RAISE NOTICE 'Vistas creadas: %', view_count;
+    RAISE NOTICE 'Leads de ejemplo: %', leads_count;
+    RAISE NOTICE 'Configuraciones de webhook: %', webhook_config_count;
+    RAISE NOTICE 'Logs de webhook: %', webhook_logs_count;
+    RAISE NOTICE '=== ESQUEMA COMPLETO Y LISTO ===';
+END
+$$;
+
+-- =====================================================
+-- FIN DE LA MIGRACIÓN COMPLETA
+-- =====================================================

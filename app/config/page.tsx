@@ -20,6 +20,10 @@ import FuturisticBackground from '@/components/futuristic-background'
 export default function ConfigPage() {
   const [activeTab, setActiveTab] = useState('profile')
   const [showPassword, setShowPassword] = useState(false)
+  const [webhookUrl, setWebhookUrl] = useState('')
+  const [isSavingWebhook, setIsSavingWebhook] = useState(false)
+  const [isTestingConnection, setIsTestingConnection] = useState(false)
+  const [webhookStatus, setWebhookStatus] = useState<'idle' | 'success' | 'error'>('idle')
 
   const tabs = [
     { id: 'profile', name: 'Perfil', icon: User },
@@ -28,6 +32,76 @@ export default function ConfigPage() {
     { id: 'integrations', name: 'Integraciones', icon: Zap },
     { id: 'api', name: 'API', icon: Key }
   ]
+
+  const handleSaveWebhook = async () => {
+    if (!webhookUrl.trim()) {
+      alert('Por favor, ingresa una URL válida para el webhook')
+      return
+    }
+
+    setIsSavingWebhook(true)
+    try {
+      // Aquí iría la llamada a la API para guardar el webhook
+      const response = await fetch('/api/config/webhook', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ webhookUrl: webhookUrl.trim() }),
+      })
+
+      if (response.ok) {
+        setWebhookStatus('success')
+        setTimeout(() => setWebhookStatus('idle'), 3000)
+      } else {
+        throw new Error('Error al guardar el webhook')
+      }
+    } catch (error) {
+      console.error('Error saving webhook:', error)
+      setWebhookStatus('error')
+      setTimeout(() => setWebhookStatus('idle'), 3000)
+    } finally {
+      setIsSavingWebhook(false)
+    }
+  }
+
+  const handleTestConnection = async () => {
+    if (!webhookUrl.trim()) {
+      alert('Por favor, ingresa una URL válida para el webhook')
+      return
+    }
+
+    setIsTestingConnection(true)
+    try {
+      const response = await fetch('/api/config/test-webhook', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ webhookUrl: webhookUrl.trim() }),
+      })
+
+      if (response.ok) {
+        alert('Conexión exitosa! El webhook está funcionando correctamente.')
+      } else {
+        throw new Error('Error al probar la conexión')
+      }
+    } catch (error) {
+      console.error('Error testing webhook:', error)
+      alert('Error al probar la conexión. Verifica que la URL sea correcta.')
+    } finally {
+      setIsTestingConnection(false)
+    }
+  }
+
+  const handleCopyWebhookUrl = () => {
+    if (webhookUrl.trim()) {
+      navigator.clipboard.writeText(webhookUrl.trim())
+      alert('URL copiada al portapapeles')
+    } else {
+      alert('No hay URL para copiar')
+    }
+  }
 
   const renderProfileTab = () => (
     <div className="space-y-6">
@@ -285,6 +359,68 @@ export default function ConfigPage() {
               <button className="px-3 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors">
                 Copiar
               </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
+        <h3 className="text-lg font-semibold text-white mb-4">Webhook del Bot de Búsqueda</h3>
+        <div className="space-y-4">
+          <div className="p-4 bg-white/5 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-white font-medium">URL del Webhook</p>
+              <button 
+                onClick={handleTestConnection}
+                disabled={isTestingConnection}
+                className="text-europbots-secondary hover:text-europbots-secondary/80 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isTestingConnection ? 'Probando...' : 'Probar Conexión'}
+              </button>
+            </div>
+            <div className="space-y-3">
+              <input
+                type="url"
+                placeholder="https://tu-bot.com/webhook/search"
+                value={webhookUrl}
+                onChange={(e) => setWebhookUrl(e.target.value)}
+                className="w-full px-3 py-2 bg-white/10 border border-europbots-secondary/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm"
+              />
+              <div className="flex items-center space-x-2">
+                <button 
+                  onClick={handleSaveWebhook}
+                  disabled={isSavingWebhook}
+                  className="bg-europbots-secondary text-europbots-primary font-bold py-2 px-4 rounded-lg hover:bg-europbots-secondary/90 transition-colors flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{isSavingWebhook ? 'Guardando...' : 'Guardar Webhook'}</span>
+                </button>
+                <button 
+                  onClick={handleCopyWebhookUrl}
+                  className="px-3 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 transition-colors"
+                >
+                  Copiar URL
+                </button>
+              </div>
+            </div>
+            {webhookStatus === 'success' && (
+              <div className="mt-3 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                <p className="text-sm text-green-300">
+                  ✅ Webhook guardado exitosamente
+                </p>
+              </div>
+            )}
+            {webhookStatus === 'error' && (
+              <div className="mt-3 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                <p className="text-sm text-red-300">
+                  ❌ Error al guardar el webhook. Inténtalo de nuevo.
+                </p>
+              </div>
+            )}
+            <div className="mt-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+              <p className="text-sm text-blue-300">
+                <strong>Nota:</strong> Esta URL recibirá notificaciones automáticas cuando se complete una búsqueda de leads.
+              </p>
             </div>
           </div>
         </div>
