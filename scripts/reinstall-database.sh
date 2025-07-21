@@ -42,8 +42,11 @@ command_exists() {
 check_requirements() {
     print_status "Verificando requisitos del sistema..."
     
-    # Cambiar al directorio raíz del proyecto
-    cd ../..
+    # Guardar el directorio actual
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    
+    # Cambiar al directorio raíz del proyecto (dos niveles arriba de scripts)
+    cd "$SCRIPT_DIR/../.."
     
     # Verificar que estemos en el directorio correcto
     if [ ! -f "docker-compose.yml" ]; then
@@ -111,6 +114,18 @@ cleanup_database() {
 reinstall_schema() {
     print_status "Reinstalando esquema de base de datos..."
     
+    # Cargar variables de entorno
+    if [ -f ".env" ]; then
+        export $(cat .env | grep -v '^#' | xargs)
+    fi
+    
+    # Usar variables de entorno o valores por defecto
+    DB_USER=${POSTGRES_USER:-n8n_user}
+    DB_PASSWORD=${POSTGRES_PASSWORD:-3Lchunch0}
+    DB_NAME=${POSTGRES_DB:-n8n_db}
+    
+    print_status "Usando usuario: $DB_USER, base de datos: $DB_NAME"
+    
     # Levantar solo PostgreSQL
     print_status "Levantando PostgreSQL..."
     if docker compose up -d n8n_postgres; then
@@ -125,7 +140,7 @@ reinstall_schema() {
     sleep 15
     
     # Verificar que PostgreSQL esté funcionando
-    if docker compose exec -T n8n_postgres pg_isready -U postgres >/dev/null 2>&1; then
+    if docker compose exec -T n8n_postgres pg_isready -U "$DB_USER" >/dev/null 2>&1; then
         print_success "PostgreSQL está funcionando"
     else
         print_error "PostgreSQL no está respondiendo"
@@ -134,7 +149,7 @@ reinstall_schema() {
     
     # Ejecutar el script de esquema
     print_status "Ejecutando script auth-schema.sql..."
-    if docker compose exec -T n8n_postgres psql -U postgres -d europbots -f /docker-entrypoint-initdb.d/01-auth-schema.sql; then
+    if docker compose exec -T n8n_postgres psql -U "$DB_USER" -d "$DB_NAME" -f /docker-entrypoint-initdb.d/01-auth-schema.sql; then
         print_success "Esquema instalado exitosamente"
     else
         print_error "Error al ejecutar el script de esquema"
@@ -146,9 +161,19 @@ reinstall_schema() {
 verify_installation() {
     print_status "Verificando la instalación..."
     
+    # Cargar variables de entorno
+    if [ -f ".env" ]; then
+        export $(cat .env | grep -v '^#' | xargs)
+    fi
+    
+    # Usar variables de entorno o valores por defecto
+    DB_USER=${POSTGRES_USER:-n8n_user}
+    DB_PASSWORD=${POSTGRES_PASSWORD:-3Lchunch0}
+    DB_NAME=${POSTGRES_DB:-n8n_db}
+    
     # Verificar tablas creadas
     print_status "Verificando tablas creadas..."
-    docker compose exec -T n8n_postgres psql -U postgres -d europbots -c "
+    docker compose exec -T n8n_postgres psql -U "$DB_USER" -d "$DB_NAME" -c "
     SELECT 
         schemaname,
         tablename,
@@ -160,7 +185,7 @@ verify_installation() {
     
     # Verificar funciones creadas
     print_status "Verificando funciones creadas..."
-    docker compose exec -T n8n_postgres psql -U postgres -d europbots -c "
+    docker compose exec -T n8n_postgres psql -U "$DB_USER" -d "$DB_NAME" -c "
     SELECT 
         routine_name,
         routine_type
@@ -171,7 +196,7 @@ verify_installation() {
     
     # Verificar datos iniciales
     print_status "Verificando datos iniciales..."
-    docker compose exec -T n8n_postgres psql -U postgres -d europbots -c "
+    docker compose exec -T n8n_postgres psql -U "$DB_USER" -d "$DB_NAME" -c "
     SELECT 'users' as table_name, COUNT(*) as count FROM webapp.users
     UNION ALL
     SELECT 'menu_options' as table_name, COUNT(*) as count FROM webapp.menu_options
@@ -210,6 +235,16 @@ start_all_services() {
 
 # Función para mostrar información final
 show_final_info() {
+    # Cargar variables de entorno
+    if [ -f ".env" ]; then
+        export $(cat .env | grep -v '^#' | xargs)
+    fi
+    
+    # Usar variables de entorno o valores por defecto
+    DB_USER=${POSTGRES_USER:-n8n_user}
+    DB_PASSWORD=${POSTGRES_PASSWORD:-3Lchunch0}
+    DB_NAME=${POSTGRES_DB:-n8n_db}
+    
     echo ""
     echo "====================================================="
     print_success "🎉 REINSTALACIÓN DE BASE DE DATOS COMPLETADA"
@@ -217,17 +252,17 @@ show_final_info() {
     echo ""
     echo "📊 Base de datos:"
     echo "   • PostgreSQL: localhost:5432"
-    echo "   • Base de datos: europbots"
-    echo "   • Usuario: postgres"
+    echo "   • Base de datos: $DB_NAME"
+    echo "   • Usuario: $DB_USER"
     echo ""
     echo "👤 Usuario administrador:"
     echo "   • Email: admin@europbots.com"
     echo "   • Password: admin123"
     echo ""
     echo "🔧 Comandos útiles:"
-    echo "   • Conectar a DB: docker compose exec n8n_postgres psql -U postgres -d europbots"
+    echo "   • Conectar a DB: docker compose exec n8n_postgres psql -U $DB_USER -d $DB_NAME"
     echo "   • Ver logs: docker compose logs n8n_postgres -f"
-    echo "   • Backup: docker compose exec n8n_postgres pg_dump -U postgres europbots > backup.sql"
+    echo "   • Backup: docker compose exec n8n_postgres pg_dump -U $DB_USER $DB_NAME > backup.sql"
     echo ""
     echo "📱 Servicios disponibles:"
     echo "   • Webapp: http://localhost:3000"
