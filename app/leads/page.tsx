@@ -120,20 +120,20 @@ export default function LeadsPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">
-                Gestión de Leads
+                Gestion des Leads
               </h1>
               <p className="text-gray-300">
-                Administra y sigue tus leads potenciales
+                Administrez et suivez vos leads potentiels
               </p>
             </div>
             <div className="flex space-x-3">
               <button className="bg-white/10 text-white font-medium py-3 px-4 rounded-lg hover:bg-white/20 transition-colors border border-europbots-secondary/20 flex items-center space-x-2">
                 <Download className="w-5 h-5" />
-                <span>Exportar</span>
+                <span>Exporter</span>
               </button>
               <button className="bg-europbots-secondary text-europbots-primary font-bold py-3 px-6 rounded-lg hover:bg-europbots-secondary/90 transition-colors flex items-center space-x-2">
                 <Plus className="w-5 h-5" />
-                <span>Nuevo Lead</span>
+                <span>Nouveau Lead</span>
               </button>
             </div>
           </div>
@@ -156,7 +156,7 @@ export default function LeadsPage() {
           <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-300">Calificados</p>
+                <p className="text-sm font-medium text-gray-300">Qualifiés</p>
                 <p className="text-2xl font-bold text-white mt-1">342</p>
               </div>
               <div className="bg-green-500/20 p-3 rounded-lg">
@@ -168,7 +168,7 @@ export default function LeadsPage() {
           <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-300">Contactados</p>
+                <p className="text-sm font-medium text-gray-300">Contactés</p>
                 <p className="text-2xl font-bold text-white mt-1">156</p>
               </div>
               <div className="bg-purple-500/20 p-3 rounded-lg">
@@ -180,7 +180,7 @@ export default function LeadsPage() {
           <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-300">Tasa de Conversión</p>
+                <p className="text-sm font-medium text-gray-300">Taux de Conversion</p>
                 <p className="text-2xl font-bold text-white mt-1">12.5%</p>
               </div>
               <div className="bg-orange-500/20 p-3 rounded-lg">
@@ -198,7 +198,7 @@ export default function LeadsPage() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
-                  placeholder="Buscar leads por nombre, email o empresa..."
+                  placeholder="Rechercher des leads par nom, email ou entreprise..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-white/10 border border-europbots-secondary/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm"
@@ -211,10 +211,10 @@ export default function LeadsPage() {
                 onChange={(e) => setSelectedFilter(e.target.value)}
                 className="px-4 py-3 bg-white/10 border border-europbots-secondary/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm"
               >
-                <option value="all">Todos los estados</option>
-                <option value="new">Nuevos</option>
-                <option value="contacted">Contactados</option>
-                <option value="qualified">Calificados</option>
+                <option value="all">Tous les états</option>
+                <option value="new">Nouveaux</option>
+                <option value="contacted">Contactés</option>
+                <option value="qualified">Qualifiés</option>
               </select>
             </div>
           </div>

@@ -17,7 +17,8 @@ import {
   BarChart3, 
   Bell, 
   Zap,
-  Key
+  Key,
+  Target
 } from 'lucide-react'
 
 interface User {
@@ -53,7 +54,8 @@ const iconMap: Record<string, LucideIcon> = {
   Settings,
   BarChart3,
   Bell,
-  Zap
+  Zap,
+  Target
 }
 
 export default function Menu() {
@@ -161,15 +163,13 @@ export default function Menu() {
         <div className="flex justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center space-x-3 group">
-              <div className="relative">
-                <img 
-                  src="/images/logo-europbots.svg"
-                  alt="EUROPBOTS"
-                  className="h-8 w-auto transition-transform group-hover:scale-105 filter brightness-0 invert"
-                />
-              </div>
-            </Link>
+            <div className="relative">
+              <img 
+                src="/images/logo-europbots.svg"
+                alt="EUROPBOTS"
+                className="h-8 w-auto filter brightness-0 invert"
+              />
+            </div>
           </div>
 
           {/* Menú de navegación principal */}

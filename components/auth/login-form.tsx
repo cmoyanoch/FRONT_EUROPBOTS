@@ -32,7 +32,21 @@ export function LoginForm() {
       if (!response.ok) {
         setError(data.error || 'Erreur de connexion')
       } else {
-        router.push('/dashboard')
+        console.log('✅ Login exitoso, usuario:', data.user)
+        
+        // Lógica de redirección basada en el rol del usuario
+        let destinationPage = '/dashboard' // Página por defecto
+        
+        if (data.user.role === 'admin') {
+          console.log('👑 Usuario es admin, redirigiendo a /admin')
+          destinationPage = '/admin'
+        } else {
+          console.log('👤 Usuario es normal, redirigiendo a /campaign')
+          destinationPage = '/campaign'
+        }
+        
+        console.log(`🚀 Redirigiendo a: ${destinationPage}`)
+        router.push(destinationPage)
         router.refresh()
       }
     } catch (err) {

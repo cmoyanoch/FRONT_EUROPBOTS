@@ -43,7 +43,21 @@ export default function LoginPage() {
       const data = await response.json()
 
       if (response.ok) {
-        router.push('/dashboard')
+        console.log('✅ Login exitoso, usuario:', data.user)
+        
+        // Lógica de redirección basada en el rol del usuario
+        let destinationPage = '/dashboard' // Página por defecto
+        
+        if (data.user.role === 'admin') {
+          console.log('👑 Usuario es admin, redirigiendo a /admin')
+          destinationPage = '/admin'
+        } else {
+          console.log('👤 Usuario es normal, redirigiendo a /campaign')
+          destinationPage = '/campaign'
+        }
+        
+        console.log(`🚀 Redirigiendo a: ${destinationPage}`)
+        router.push(destinationPage)
       } else {
         setError(data.error || 'Erreur lors de la connexion')
       }
