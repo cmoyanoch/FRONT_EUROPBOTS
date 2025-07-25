@@ -55,7 +55,7 @@ check_requirements() {
     fi
     
     # Verificar que exista el archivo auth-schema.sql
-    if [ ! -f "/auth-schema.sql" ]; then
+    if [ ! -f "/root/web-app/scripts/auth-schema.sql" ]; then
         print_error "No se encontró auth-schema.sql. Verifica la ruta: auth-schema.sql"
         exit 1
     fi
