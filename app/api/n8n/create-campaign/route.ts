@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
       console.log('Campaña creada exitosamente')
       return NextResponse.json({
         success: true,
-        message: 'Campaña creada exitosamente',
+        message: 'Campagne créée avec succès',
         campaignId: n8nResult.campaignId || 'generated-id',
         n8nResponse: n8nResult
       })

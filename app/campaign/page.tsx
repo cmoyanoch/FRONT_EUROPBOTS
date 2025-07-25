@@ -124,7 +124,7 @@ export default function CampaignPage() {
       if (response.ok && result.success) {
         console.log('Campaña creada exitosamente via webhook n8n:', result)
         // Aquí podrías mostrar una notificación de éxito
-        alert(`Campaña creada exitosamente! ID: ${result.campaignId}`)
+        alert(`Campagne créée avec succès! ID: ${result.campaignId}`)
         setShowModal(false)
         // Recargar la lista de campañas
         window.location.reload()
@@ -134,13 +134,13 @@ export default function CampaignPage() {
       }
     } catch (error) {
       console.error('Error en la llamada al webhook:', error)
-      alert('Error de conexión al crear la campaña')
+              alert('Erreur de connexion lors de la création de la campagne')
     }
   }
 
   // Función para manejar la eliminación de campañas
   const handleDeleteCampaign = async (campaignId: string) => {
-    if (!confirm('¿Estás seguro de que quieres desactivar esta campaña? Esta acción la ocultará de la lista.')) {
+    if (!confirm('Êtes-vous sûr de vouloir désactiver cette campagne? Cette action la masquera de la liste.')) {
       return
     }
 
@@ -159,14 +159,14 @@ export default function CampaignPage() {
         console.log('✅ Campaña desactivada exitosamente:', data)
         // Remover la campaña de la lista local
         setCampaigns(prevCampaigns => prevCampaigns.filter(campaign => campaign.campaign_id !== campaignId))
-        alert('Campaña desactivada correctamente')
+        alert('Campagne désactivée correctement')
       } else {
         console.error('❌ Error al desactivar campaña:', data.message)
-        alert(`Error al desactivar campaña: ${data.message}`)
+        alert(`Erreur lors de la désactivation de la campagne: ${data.message}`)
       }
     } catch (error) {
       console.error('❌ Error de conexión al desactivar campaña:', error)
-      alert('Error de conexión al desactivar la campaña')
+              alert('Erreur de connexion lors de la désactivation de la campagne')
     } finally {
       setDeletingCampaign(null)
     }
