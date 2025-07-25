@@ -217,11 +217,7 @@ build_docker() {
     fi
     
     # Volver al directorio web_app
-<<<<<<< Updated upstream
-    cd ../web_app
-=======
-    cd ~/web-app
->>>>>>> Stashed changes
+    cd web_app  # Cambiado de ../web_app a web_app          
     
     print_success "Todos los contenedores Docker compilados exitosamente"
 }
@@ -242,11 +238,7 @@ start_services() {
     fi
     
     # Volver al directorio web_app
-<<<<<<< Updated upstream
-    cd ../web_app
-=======
-    cd ~/web-app
->>>>>>> Stashed changes
+    cd web_app
 }
 
 # Función para verificar servicios
@@ -303,11 +295,7 @@ check_services() {
     fi
     
     # Volver al directorio web_app
-<<<<<<< Updated upstream
-    cd ../web_app
-=======
-    cd ~/web-app
->>>>>>> Stashed changes
+    cd web_app
 }
 
 # Función para mostrar información final
