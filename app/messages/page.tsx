@@ -70,7 +70,7 @@ export default function MessagesPage() {
         setTemplates(result.data);
       }
     } catch (error) {
-      console.error("Error cargando templates:", error);
+      console.error("Erreur lors du chargement des templates:", error);
     } finally {
       setLoading(false);
     }
@@ -97,7 +97,7 @@ export default function MessagesPage() {
         loadTemplates();
       }
     } catch (error) {
-      console.error("Error creando template:", error);
+      console.error("Erreur lors de la création du template:", error);
     }
   };
 
@@ -120,7 +120,7 @@ export default function MessagesPage() {
         loadTemplates();
       }
     } catch (error) {
-      console.error("Error actualizando template:", error);
+      console.error("Erreur lors de la mise à jour du template:", error);
     }
   };
 
@@ -141,7 +141,7 @@ export default function MessagesPage() {
         loadTemplates();
       }
     } catch (error) {
-      console.error("Error eliminando template:", error);
+      console.error("Erreur lors de la suppression du template:", error);
     }
   };
 

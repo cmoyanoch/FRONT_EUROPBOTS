@@ -1,116 +1,123 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { 
-  Bot, 
-  Zap, 
-  Settings, 
-  Play, 
-  Pause, 
-  Trash2, 
-  Edit, 
+import FuturisticBackground from "@/components/futuristic-background";
+import {
+  Bot,
+  Edit,
+  MessageSquare,
+  Pause,
+  Play,
   Plus,
   Search,
-  Filter,
-  Calendar,
+  Settings,
+  Trash2,
   TrendingUp,
   Users,
-  MessageSquare
-} from 'lucide-react'
-import FuturisticBackground from '@/components/futuristic-background'
+} from "lucide-react";
+import { useState } from "react";
 
 export default function AutomationPage() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedFilter, setSelectedFilter] = useState('all')
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedFilter, setSelectedFilter] = useState("all");
 
   const automations = [
     {
       id: 1,
-      name: 'LinkedIn Auto Connect',
-      description: 'Conecta automáticamente con leads de LinkedIn',
-      status: 'active',
-      type: 'social',
-      lastRun: 'Hace 2 horas',
+      name: "LinkedIn Auto Connect",
+      description: "Connecte automatiquement avec les leads LinkedIn",
+      status: "active",
+      type: "social",
+      lastRun: "Il y a 2 heures",
       successRate: 95,
-      icon: Users
+      icon: Users,
     },
     {
       id: 2,
-      name: 'Email Campaign Manager',
-      description: 'Gestiona campañas de email automáticamente',
-      status: 'paused',
-      type: 'email',
-      lastRun: 'Hace 1 día',
+      name: "Email Campaign Manager",
+      description: "Gérez les campagnes email automatiquement",
+      status: "paused",
+      type: "email",
+      lastRun: "Il y a 1 jour",
       successRate: 88,
-      icon: MessageSquare
+      icon: MessageSquare,
     },
     {
       id: 3,
-      name: 'Lead Qualification Bot',
-      description: 'Califica leads automáticamente',
-      status: 'active',
-      type: 'ai',
-      lastRun: 'Hace 30 minutos',
+      name: "Lead Qualification Bot",
+      description: "Qualifiez les leads automatiquement",
+      status: "active",
+      type: "ai",
+      lastRun: "Il y a 30 minutes",
       successRate: 92,
-      icon: Bot
+      icon: Bot,
     },
     {
       id: 4,
-      name: 'Data Scraping Tool',
-      description: 'Extrae datos de sitios web',
-      status: 'stopped',
-      type: 'data',
-      lastRun: 'Hace 3 días',
+      name: "Data Scraping Tool",
+      description: "Extrayez les données des sites web",
+      status: "stopped",
+      type: "data",
+      lastRun: "Il y a 3 jours",
       successRate: 78,
-      icon: TrendingUp
-    }
-  ]
+      icon: TrendingUp,
+    },
+  ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'text-green-400'
-      case 'paused': return 'text-yellow-400'
-      case 'stopped': return 'text-red-400'
-      default: return 'text-gray-400'
+      case "active":
+        return "text-green-400";
+      case "paused":
+        return "text-yellow-400";
+      case "stopped":
+        return "text-red-400";
+      default:
+        return "text-gray-400";
     }
-  }
+  };
 
   const getStatusBg = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-500/20'
-      case 'paused': return 'bg-yellow-500/20'
-      case 'stopped': return 'bg-red-500/20'
-      default: return 'bg-gray-500/20'
+      case "active":
+        return "bg-green-500/20";
+      case "paused":
+        return "bg-yellow-500/20";
+      case "stopped":
+        return "bg-red-500/20";
+      default:
+        return "bg-gray-500/20";
     }
-  }
+  };
 
-  const filteredAutomations = automations.filter(automation => {
-    const matchesSearch = automation.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         automation.description.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesFilter = selectedFilter === 'all' || automation.type === selectedFilter
-    return matchesSearch && matchesFilter
-  })
+  const filteredAutomations = automations.filter((automation) => {
+    const matchesSearch =
+      automation.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      automation.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter =
+      selectedFilter === "all" || automation.type === selectedFilter;
+    return matchesSearch && matchesFilter;
+  });
 
   return (
     <div className="min-h-screen relative">
       {/* Fondo Futurístico */}
       <FuturisticBackground />
-      
+
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-white mb-2">
-                Automatizaciones
+                Automatisations
               </h1>
               <p className="text-gray-300">
-                Gestiona tus robots y automatizaciones
+                Gérez vos robots et automatisations
               </p>
             </div>
             <button className="bg-europbots-secondary text-europbots-primary font-bold py-3 px-6 rounded-lg hover:bg-europbots-secondary/90 transition-colors flex items-center space-x-2">
               <Plus className="w-5 h-5" />
-              <span>Nueva Automatización</span>
+              <span>Nouvelle Automatisation</span>
             </button>
           </div>
         </div>
@@ -120,7 +127,9 @@ export default function AutomationPage() {
           <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-300">Total Automatizaciones</p>
+                <p className="text-sm font-medium text-gray-300">
+                  Total Automatisations
+                </p>
                 <p className="text-2xl font-bold text-white mt-1">24</p>
               </div>
               <div className="bg-blue-500/20 p-3 rounded-lg">
@@ -128,11 +137,11 @@ export default function AutomationPage() {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-300">Activas</p>
+                <p className="text-sm font-medium text-gray-300">Actives</p>
                 <p className="text-2xl font-bold text-white mt-1">18</p>
               </div>
               <div className="bg-green-500/20 p-3 rounded-lg">
@@ -140,11 +149,11 @@ export default function AutomationPage() {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-300">Pausadas</p>
+                <p className="text-sm font-medium text-gray-300">En Pause</p>
                 <p className="text-2xl font-bold text-white mt-1">4</p>
               </div>
               <div className="bg-yellow-500/20 p-3 rounded-lg">
@@ -152,11 +161,13 @@ export default function AutomationPage() {
               </div>
             </div>
           </div>
-          
+
           <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-300">Tasa de Éxito</p>
+                <p className="text-sm font-medium text-gray-300">
+                  Taux de Réussite
+                </p>
                 <p className="text-2xl font-bold text-white mt-1">89%</p>
               </div>
               <div className="bg-purple-500/20 p-3 rounded-lg">
@@ -174,7 +185,7 @@ export default function AutomationPage() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
                 <input
                   type="text"
-                  placeholder="Buscar automatizaciones..."
+                  placeholder="Rechercher des automatisations..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-white/10 border border-europbots-secondary/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm"
@@ -200,26 +211,36 @@ export default function AutomationPage() {
         {/* Automations Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredAutomations.map((automation) => {
-            const Icon = automation.icon
+            const Icon = automation.icon;
             return (
-              <div key={automation.id} className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6 hover:bg-white/20 transition-all duration-300 hover:shadow-lg hover:shadow-europbots-secondary/20">
+              <div
+                key={automation.id}
+                className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6 hover:bg-white/20 transition-all duration-300 hover:shadow-lg hover:shadow-europbots-secondary/20"
+              >
                 <div className="flex items-start justify-between mb-4">
                   <div className="bg-europbots-secondary/20 p-3 rounded-lg">
                     <Icon className="w-6 h-6 text-europbots-secondary" />
                   </div>
-                  <div className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBg(automation.status)} ${getStatusColor(automation.status)}`}>
-                    {automation.status === 'active' ? 'Activa' : 
-                     automation.status === 'paused' ? 'Pausada' : 'Detenida'}
+                  <div
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBg(
+                      automation.status
+                    )} ${getStatusColor(automation.status)}`}
+                  >
+                    {automation.status === "active"
+                      ? "Active"
+                      : automation.status === "paused"
+                      ? "En Pause"
+                      : "Arrêtée"}
                   </div>
                 </div>
-                
+
                 <h3 className="text-lg font-semibold text-white mb-2">
                   {automation.name}
                 </h3>
                 <p className="text-gray-300 text-sm mb-4">
                   {automation.description}
                 </p>
-                
+
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-400">Última ejecución:</span>
@@ -227,10 +248,12 @@ export default function AutomationPage() {
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-gray-400">Tasa de éxito:</span>
-                    <span className="text-green-400">{automation.successRate}%</span>
+                    <span className="text-green-400">
+                      {automation.successRate}%
+                    </span>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between mt-6 pt-4 border-t border-europbots-secondary/20">
                   <div className="flex space-x-2">
                     <button className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors">
@@ -241,7 +264,7 @@ export default function AutomationPage() {
                     </button>
                   </div>
                   <div className="flex space-x-2">
-                    {automation.status === 'active' ? (
+                    {automation.status === "active" ? (
                       <button className="p-2 bg-yellow-500/20 rounded-lg hover:bg-yellow-500/30 transition-colors">
                         <Pause className="w-4 h-4 text-yellow-400" />
                       </button>
@@ -256,10 +279,10 @@ export default function AutomationPage() {
                   </div>
                 </div>
               </div>
-            )
+            );
           })}
         </div>
       </main>
     </div>
-  )
-} 
+  );
+}

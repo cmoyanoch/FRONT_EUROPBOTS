@@ -1,60 +1,60 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export function LoginForm() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const router = useRouter()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || 'Erreur de connexion')
+        setError(data.error || "Erreur de connexion");
       } else {
-        console.log('✅ Login exitoso, usuario:', data.user)
-        
+        console.log("✅ Connexion réussie, utilisateur:", data.user);
+
         // Lógica de redirección basada en el rol del usuario
-        let destinationPage = '/dashboard' // Página por defecto
-        
-        if (data.user.role === 'admin') {
-          console.log('👑 Usuario es admin, redirigiendo a /admin')
-          destinationPage = '/admin'
+        let destinationPage = "/dashboard"; // Página por defecto
+
+        if (data.user.role === "admin") {
+          console.log("👑 Utilisateur est admin, redirection vers /admin");
+          destinationPage = "/admin";
         } else {
-          console.log('👤 Usuario es normal, redirigiendo a /campaign')
-          destinationPage = '/campaign'
+          console.log("👤 Utilisateur est normal, redirection vers /campaign");
+          destinationPage = "/campaign";
         }
-        
-        console.log(`🚀 Redirigiendo a: ${destinationPage}`)
-        router.push(destinationPage)
-        router.refresh()
+
+        console.log(`🚀 Redirection vers: ${destinationPage}`);
+        router.push(destinationPage);
+        router.refresh();
       }
     } catch (err) {
-      setError('Erreur inattendue. Réessayez.')
+      setError("Erreur inattendue. Réessayez.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="w-full max-w-md space-y-6">
@@ -84,7 +84,10 @@ export function LoginForm() {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="password" className="text-europbots-primary font-medium">
+          <Label
+            htmlFor="password"
+            className="text-europbots-primary font-medium"
+          >
             Mot de passe
           </Label>
           <Input
@@ -104,23 +107,26 @@ export function LoginForm() {
           </div>
         )}
 
-        <Button 
-          type="submit" 
-          className="w-full europbots-button" 
+        <Button
+          type="submit"
+          className="w-full europbots-button"
           disabled={loading}
         >
-          {loading ? 'Connexion en cours...' : 'Connexion'}
+          {loading ? "Connexion en cours..." : "Connexion"}
         </Button>
       </form>
 
       <div className="text-center">
         <p className="text-sm text-europbots-gray">
-          Pas de compte ?{' '}
-          <a href="/register" className="text-europbots-secondary hover:text-europbots-secondary/80 font-medium transition-colors">
+          Pas de compte ?{" "}
+          <a
+            href="/register"
+            className="text-europbots-secondary hover:text-europbots-secondary/80 font-medium transition-colors"
+          >
             Inscrivez-vous ici
           </a>
         </p>
       </div>
     </div>
-  )
-} 
+  );
+}

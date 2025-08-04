@@ -1,48 +1,48 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { usePathname } from 'next/navigation'
-import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  BarChart3,
+  Bell,
+  Key,
+  LayoutDashboard,
   LogOut,
   LucideIcon,
+  MessageSquare,
+  Search,
+  Settings,
   Shield,
-  LayoutDashboard, 
-  Search, 
-  Users, 
-  MessageSquare, 
-  Settings, 
-  BarChart3, 
-  Bell, 
+  Target,
+  Users,
   Zap,
-  Key,
-  Target
-} from 'lucide-react'
+} from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 interface User {
-  id: string
-  email: string
-  full_name?: string
-  role?: string
-  avatar_url?: string
+  id: string;
+  email: string;
+  full_name?: string;
+  role?: string;
+  avatar_url?: string;
 }
 
 interface MenuItem {
-  id: string
-  name: string
-  label: string
-  href: string
-  icon: string
-  badge?: string
+  id: string;
+  name: string;
+  label: string;
+  href: string;
+  icon: string;
+  badge?: string;
 }
 
 interface NavItem {
-  href: string
-  label: string
-  icon: LucideIcon
-  badge?: string
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  badge?: string;
 }
 
 // Mapeo de iconos
@@ -55,107 +55,110 @@ const iconMap: Record<string, LucideIcon> = {
   BarChart3,
   Bell,
   Zap,
-  Target
-}
+  Target,
+};
 
 export default function Menu() {
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
-  const [user, setUser] = useState<User | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([])
-  const pathname = usePathname()
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const pathname = usePathname();
 
-  console.log('Menu - Component rendered, pathname:', pathname)
-  console.log('Menu - isUserMenuOpen state:', isUserMenuOpen)
+  console.log("Menu - Component rendered, pathname:", pathname);
+  console.log("Menu - isUserMenuOpen state:", isUserMenuOpen);
 
   // Obtener usuario autenticado y permisos del menú
   useEffect(() => {
     // Solo obtener usuario si no estamos en páginas de auth
-    if (pathname === '/login' || pathname === '/register') {
-      setIsLoading(false)
-      return
+    if (pathname === "/login" || pathname === "/register") {
+      setIsLoading(false);
+      return;
     }
 
     const fetchUserAndPermissions = async () => {
       try {
         // Obtener usuario
-        const userResponse = await fetch('/api/auth/me')
+        const userResponse = await fetch("/api/auth/me");
         if (userResponse.ok) {
-          const userData = await userResponse.json()
+          const userData = await userResponse.json();
           if (userData.success && userData.user) {
-            setUser(userData.user)
-            console.log('Menu - User fetched:', userData.user)
+            setUser(userData.user);
+            console.log("Menu - User fetched:", userData.user);
 
             // Obtener permisos del menú
-            const permissionsResponse = await fetch('/api/menu-permissions')
+            const permissionsResponse = await fetch("/api/menu-permissions");
             if (permissionsResponse.ok) {
-              const permissionsData = await permissionsResponse.json()
-              setMenuItems(permissionsData.menuItems)
-              console.log('Menu - Permissions fetched:', permissionsData.menuItems)
+              const permissionsData = await permissionsResponse.json();
+              setMenuItems(permissionsData.menuItems);
+              console.log(
+                "Menu - Permissions fetched:",
+                permissionsData.menuItems
+              );
             }
           } else {
-            console.log('Menu - No authenticated user')
-            setUser(null)
+            console.log("Menu - No authenticated user");
+            setUser(null);
           }
         } else {
-          console.log('Menu - No authenticated user')
-          setUser(null)
+          console.log("Menu - No authenticated user");
+          setUser(null);
         }
       } catch (error) {
-        console.error('Menu - Error fetching user or permissions:', error)
-        setUser(null)
+        console.error("Menu - Error fetching user or permissions:", error);
+        setUser(null);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchUserAndPermissions()
-  }, [pathname])
+    fetchUserAndPermissions();
+  }, [pathname]);
 
   const handleLogout = async () => {
     try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-      })
-      
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+      });
+
       if (response.ok) {
-        window.location.href = '/login'
+        window.location.href = "/login";
       }
     } catch (error) {
-      console.error('Erreur lors de la déconnexion:', error)
+      console.error("Erreur lors de la déconnexion:", error);
     }
-  }
+  };
 
   const handleToggleMenu = () => {
-    console.log('Menu - Toggle clicked, current state:', isUserMenuOpen)
-    setIsUserMenuOpen(!isUserMenuOpen)
-    console.log('Menu - New state will be:', !isUserMenuOpen)
-  }
+    console.log("Menu - Toggle clicked, current state:", isUserMenuOpen);
+    setIsUserMenuOpen(!isUserMenuOpen);
+    console.log("Menu - New state will be:", !isUserMenuOpen);
+  };
 
   // Ocultar menú solo en login y register
-  if (pathname === '/login' || pathname === '/register') {
-    console.log('Menu - Hidden for auth pages')
+  if (pathname === "/login" || pathname === "/register") {
+    console.log("Menu - Hidden for auth pages");
     return null;
   }
 
   // Convertir menuItems a navItems
-  const navItems: NavItem[] = menuItems.map(item => ({
+  const navItems: NavItem[] = menuItems.map((item) => ({
     href: item.href,
     label: item.label,
     icon: iconMap[item.icon] || LayoutDashboard,
-    badge: item.badge
-  }))
+    badge: item.badge,
+  }));
 
-  console.log('Menu - User data:', user)
-  console.log('Menu - Nav items:', navItems)
+  console.log("Menu - User data:", user);
+  console.log("Menu - Nav items:", navItems);
 
   // Función para obtener las iniciales del usuario
   const getUserInitials = (user: User) => {
     if (user.full_name) {
-      return user.full_name.charAt(0).toUpperCase()
+      return user.full_name.charAt(0).toUpperCase();
     }
-    return user.email.charAt(0).toUpperCase()
-  }
+    return user.email.charAt(0).toUpperCase();
+  };
 
   return (
     <nav className="bg-europbots-primary/95 backdrop-blur-md border-b border-europbots-secondary/20 shadow-lg sticky top-0 z-[9999]">
@@ -163,43 +166,38 @@ export default function Menu() {
         <div className="flex justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-              <div className="relative">
-                <img 
-                  src="/images/logo-europbots.svg"
-                  alt="EUROPBOTS"
+            <div className="relative">
+              <img
+                src="/images/logo-europbots.svg"
+                alt="EUROPBOTS"
                 className="h-8 w-auto filter brightness-0 invert"
-                />
-              </div>
+              />
+            </div>
           </div>
 
           {/* Menú de navegación principal */}
           <div className="hidden md:flex items-center space-x-1">
             {navItems.map((item) => {
-                const Icon = item.icon
-                const isActive = pathname === item.href
-                
-                return (
-                  <Link key={item.href} href={item.href}>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className={`relative px-3 py-2 text-sm font-medium transition-all duration-200 ${
-                        isActive
-                            ? 'text-europbots-secondary bg-europbots-secondary/10 border-b-2 border-europbots-secondary' 
-                            : 'text-gray-300 hover:text-white hover:bg-white/10'
-                      }`}
-                    >
-                      <Icon className="mr-2 h-4 w-4" />
-                      {item.label}
-                      {item.badge && (
-                        <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-europbots-secondary text-europbots-primary">
-                          {item.badge}
-                        </span>
-                      )}
-                    </Button>
-                  </Link>
-                )
-              })}
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+
+              return (
+                <Link key={item.href} href={item.href}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`relative px-3 py-2 text-sm font-medium transition-all duration-200 ${
+                      isActive
+                        ? "text-europbots-secondary bg-europbots-secondary/10 border-b-2 border-europbots-secondary"
+                        : "text-gray-300 hover:text-white hover:bg-white/10"
+                    }`}
+                  >
+                    <Icon className="mr-2 h-4 w-4" />
+                    {item.label}
+                  </Button>
+                </Link>
+              );
+            })}
           </div>
 
           {/* Menú de usuario */}
@@ -217,13 +215,13 @@ export default function Menu() {
                 >
                   <Avatar className="h-9 w-9 ring-2 ring-europbots-secondary/30 hover:ring-europbots-secondary transition-all duration-200">
                     {user.avatar_url ? (
-                      <AvatarImage 
-                        src={user.avatar_url} 
+                      <AvatarImage
+                        src={user.avatar_url}
                         alt={user.full_name || user.email}
                         onError={(e) => {
                           // Si la imagen falla al cargar, ocultar el AvatarImage
-                          const target = e.target as HTMLImageElement
-                          target.style.display = 'none'
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = "none";
                         }}
                       />
                     ) : null}
@@ -239,8 +237,14 @@ export default function Menu() {
                     <div className="py-2">
                       <div className="px-4 py-3 border-b border-europbots-secondary/20">
                         <div className="flex flex-col space-y-1">
-                          {user.full_name && <p className="font-semibold text-sm text-white">{user.full_name}</p>}
-                          <p className="text-sm text-gray-300 truncate">{user.email}</p>
+                          {user.full_name && (
+                            <p className="font-semibold text-sm text-white">
+                              {user.full_name}
+                            </p>
+                          )}
+                          <p className="text-sm text-gray-300 truncate">
+                            {user.email}
+                          </p>
                           {user.role && (
                             <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-europbots-secondary/20 text-europbots-secondary capitalize">
                               {user.role}
@@ -248,19 +252,19 @@ export default function Menu() {
                           )}
                         </div>
                       </div>
-                        
-                      {user.role === 'admin' && (
+
+                      {user.role === "admin" && (
                         <>
-                        <Link 
-                          href="/admin" 
+                          <Link
+                            href="/admin"
                             className="block px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center transition-colors duration-200"
-                          onClick={() => setIsUserMenuOpen(false)}
-                        >
+                            onClick={() => setIsUserMenuOpen(false)}
+                          >
                             <Shield className="mr-3 h-4 w-4" />
-                          Administration
-                        </Link>
-                          <Link 
-                            href="/admin/menu-permissions" 
+                            Administration
+                          </Link>
+                          <Link
+                            href="/admin/menu-permissions"
                             className="block px-4 py-3 text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center transition-colors duration-200"
                             onClick={() => setIsUserMenuOpen(false)}
                           >
@@ -269,17 +273,17 @@ export default function Menu() {
                           </Link>
                         </>
                       )}
-                    
-                    <button
+
+                      <button
                         className="block w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300 flex items-center transition-colors duration-200"
                         onClick={() => {
-                          setIsUserMenuOpen(false)
-                          handleLogout()
+                          setIsUserMenuOpen(false);
+                          handleLogout();
                         }}
-                    >
+                      >
                         <LogOut className="mr-3 h-4 w-4" />
                         Se Déconnecter
-                    </button>
+                      </button>
                     </div>
                   </div>
                 )}
@@ -288,12 +292,19 @@ export default function Menu() {
               // Usuario no autenticado - mostrar botones de auth
               <div className="flex items-center space-x-3">
                 <Link href="/login">
-                  <Button variant="ghost" size="sm" className="text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200"
+                  >
                     Connexion
                   </Button>
                 </Link>
                 <Link href="/register">
-                  <Button size="sm" className="bg-europbots-secondary text-europbots-primary hover:bg-europbots-secondary/90 font-medium transition-all duration-200 shadow-lg hover:shadow-xl shadow-europbots-secondary/25">
+                  <Button
+                    size="sm"
+                    className="bg-europbots-secondary text-europbots-primary hover:bg-europbots-secondary/90 font-medium transition-all duration-200 shadow-lg hover:shadow-xl shadow-europbots-secondary/25"
+                  >
                     Inscription
                   </Button>
                 </Link>
@@ -303,5 +314,5 @@ export default function Menu() {
         </div>
       </div>
     </nav>
-  )
-} 
+  );
+}
