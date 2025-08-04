@@ -1,72 +1,73 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import Image from 'next/image'
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
+import { Eye, EyeOff, Lock, Mail } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
-  const [successMessage, setSuccessMessage] = useState('')
-  const router = useRouter()
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const router = useRouter();
 
   // Verificar si hay mensaje de éxito en la URL
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search)
-      const message = urlParams.get('message')
-      if (message === 'password-reset-success') {
-        setSuccessMessage('Mot de passe mis à jour avec succès ! Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.')
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const message = urlParams.get("message");
+      if (message === "password-reset-success") {
+        setSuccessMessage(
+          "Mot de passe mis à jour avec succès ! Vous pouvez maintenant vous connecter avec votre nouveau mot de passe."
+        );
       }
     }
-  }, [])
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email, password }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (response.ok) {
-        console.log('✅ Login exitoso, usuario:', data.user)
-        
+        // Login exitoso
+
         // Lógica de redirección basada en el rol del usuario
-        let destinationPage = '/dashboard' // Página por defecto
-        
-        if (data.user.role === 'admin') {
-          console.log('👑 Usuario es admin, redirigiendo a /admin')
-          destinationPage = '/admin'
+        let destinationPage = "/dashboard"; // Página por defecto
+
+        if (data.user.role === "admin") {
+          // Usuario es admin, redirigiendo a /admin
+          destinationPage = "/admin";
         } else {
-          console.log('👤 Usuario es normal, redirigiendo a /campaign')
-          destinationPage = '/campaign'
+          // Usuario es normal, redirigiendo a /campaign
+          destinationPage = "/campaign";
         }
-        
-        console.log(`🚀 Redirigiendo a: ${destinationPage}`)
-        router.push(destinationPage)
+
+        // Redirigiendo a la página correspondiente
+        router.push(destinationPage);
       } else {
-        setError(data.error || 'Erreur lors de la connexion')
+        setError(data.error || "Erreur lors de la connexion");
       }
     } catch (error) {
-      setError('Erreur de connexion')
+      setError("Erreur de connexion");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen relative flex items-center justify-center bg-europbots-primary">
@@ -91,7 +92,7 @@ export default function LoginPage() {
                 {successMessage}
               </div>
             )}
-            
+
             {error && (
               <div className="bg-red-500/20 border border-red-500/30 text-red-300 px-4 py-3 rounded-lg text-sm">
                 {error}
@@ -99,7 +100,10 @@ export default function LoginPage() {
             )}
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-300 mb-2"
+              >
                 Adresse E-mail
               </label>
               <div className="relative">
@@ -119,7 +123,10 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-300 mb-2"
+              >
                 Mot de Passe
               </label>
               <div className="relative">
@@ -128,7 +135,7 @@ export default function LoginPage() {
                 </div>
                 <input
                   id="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -155,7 +162,9 @@ export default function LoginPage() {
                   type="checkbox"
                   className="h-4 w-4 text-europbots-secondary bg-white/10 border-europbots-secondary/20 rounded focus:ring-europbots-secondary focus:ring-2"
                 />
-                <span className="ml-2 text-sm text-gray-300">Se souvenir de moi</span>
+                <span className="ml-2 text-sm text-gray-300">
+                  Se souvenir de moi
+                </span>
               </label>
             </div>
 
@@ -164,11 +173,11 @@ export default function LoginPage() {
               disabled={loading}
               className="w-full bg-europbots-secondary text-europbots-primary font-bold py-3 px-4 rounded-lg hover:bg-europbots-secondary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Connexion en cours...' : 'Se Connecter'}
+              {loading ? "Connexion en cours..." : "Se Connecter"}
             </button>
           </form>
         </div>
       </div>
     </div>
-  )
-} 
+  );
+}

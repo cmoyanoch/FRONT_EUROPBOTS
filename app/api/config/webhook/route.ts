@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     
     // Guardar en la base de datos
     console.log(`Guardando webhook URL (${type}):`, webhookUrl)
-    
+
     const result = await pool.query(`
       INSERT INTO webapp.webhook_config (user_id, webhook_url, webhook_type, is_active)
       VALUES ($1, $2, $3, true)
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     `, [userId, webhookUrl, webhookType])
 
     return NextResponse.json({
-      success: true,
+        success: true, 
       message: `Webhook de ${type} guardado exitosamente`,
       webhookUrl,
       type

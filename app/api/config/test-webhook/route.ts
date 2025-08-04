@@ -58,21 +58,21 @@ export async function POST(request: NextRequest) {
         })
       } else {
         // Para webhooks POST, enviar payload en body
-        const testPayload = {
+    const testPayload = {
           test: true,
           message: 'Prueba de conexión desde EUROPBOTS',
-          timestamp: new Date().toISOString(),
+      timestamp: new Date().toISOString(),
           source: 'web-app-config'
-        }
+      }
         
         response = await fetch(webhookUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(testPayload),
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(testPayload),
           signal: controller.signal
-        })
+      })
       }
       
       clearTimeout(timeoutId)
@@ -80,8 +80,8 @@ export async function POST(request: NextRequest) {
 
       if (response.ok) {
         return NextResponse.json({
-          success: true,
-          message: 'Conexión exitosa',
+            success: true, 
+            message: 'Conexión exitosa',
           status: response.status,
           statusText: response.statusText
         })

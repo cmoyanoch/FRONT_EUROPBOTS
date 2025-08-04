@@ -163,13 +163,13 @@ export default function Menu() {
         <div className="flex justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <div className="relative">
-              <img 
-                src="/images/logo-europbots.svg"
-                alt="EUROPBOTS"
+              <div className="relative">
+                <img 
+                  src="/images/logo-europbots.svg"
+                  alt="EUROPBOTS"
                 className="h-8 w-auto filter brightness-0 invert"
-              />
-            </div>
+                />
+              </div>
           </div>
 
           {/* Menú de navegación principal */}
