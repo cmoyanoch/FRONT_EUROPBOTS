@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get("type");
     const isActive = searchParams.get("is_active");
 
-    let query = "SELECT * FROM message_templates WHERE 1=1";
+    let query = "SELECT * FROM webapp.message_templates WHERE 1=1";
     const params: any[] = [];
     let paramIndex = 1;
 
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await pool.query(
-      "INSERT INTO message_templates (name, content, sector, type) VALUES ($1, $2, $3, $4) RETURNING *",
+      "INSERT INTO webapp.message_templates (name, content, sector, type) VALUES ($1, $2, $3, $4) RETURNING *",
       [name, content, sector, type]
     );
 

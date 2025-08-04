@@ -10,7 +10,7 @@ export async function GET(
     const { id } = params;
 
     const result = await pool.query(
-      "SELECT * FROM message_templates WHERE id = $1",
+      "SELECT * FROM webapp.message_templates WHERE id = $1",
       [id]
     );
 
@@ -53,7 +53,7 @@ export async function PUT(
     }
 
     const result = await pool.query(
-      `UPDATE message_templates
+      `UPDATE webapp.message_templates
        SET name = $1, content = $2, sector = $3, type = $4, is_active = $5, updated_at = CURRENT_TIMESTAMP
        WHERE id = $6
        RETURNING *`,
@@ -97,7 +97,7 @@ export async function DELETE(
     const { id } = params;
 
     const result = await pool.query(
-      "DELETE FROM message_templates WHERE id = $1 RETURNING *",
+      "DELETE FROM webapp.message_templates WHERE id = $1 RETURNING *",
       [id]
     );
 
