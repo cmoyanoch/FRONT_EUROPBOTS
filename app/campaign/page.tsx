@@ -1,6 +1,7 @@
 "use client";
 
 import FuturisticBackground from "@/components/futuristic-background";
+import { ToastNotification, useNotification } from "@/components/ui/notification";
 import {
   Globe,
   Plus,
@@ -13,20 +14,40 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-// Datos de ejemplo para los filtros
-const SECTORS = [
-  "Technologie",
-  "Santé",
-  "Finance",
-  "Éducation",
-  "Commerce",
-  "Manufacturing",
-  "Consulting",
-  "Media",
-  "Real Estate",
-  "Government",
+// Interfaces para los datos dinámicos
+interface Sector {
+  id: number;
+  name: string;
+  code: string;
+  description: string | null;
+  order_index: number;
+}
+
+interface Role {
+  name: string;
+  code: string;
+  description: string | null;
+  order_index: number;
+  sector_id: number;
+}
+
+// Datos de ejemplo para los filtros (fallback)
+const FALLBACK_SECTORS = [
+  "Manufacturing & Industry",
+  "Banking & Insurance",
+  "Retail",
+  "Hospitality & Hotels",
+  "Healthcare & Hospitals",
+  "Technology & Telecom",
+  "Logistics & Transportation",
+  "Real Estate & Development",
+  "Education",
+  "Business Services & Consulting",
+  "Facilities & Cleaning Services",
+  "Government & Public Administration",
 ];
-const ROLES = [
+
+const FALLBACK_ROLES = [
   "CEO",
   "CTO",
   "CFO",
@@ -39,6 +60,7 @@ const ROLES = [
   "Founders",
   "Presidents",
 ];
+
 const REGIONS = [
   "France",
 ];
@@ -46,7 +68,7 @@ const REGIONS = [
 export default function CampaignPage() {
   const [showModal, setShowModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedSectors, setSelectedSectors] = useState<string[]>([]);
+
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
   const [campaigns, setCampaigns] = useState<any[]>([]);
@@ -54,6 +76,83 @@ export default function CampaignPage() {
   const [error, setError] = useState<string | null>(null);
   const [deletingCampaign, setDeletingCampaign] = useState<string | null>(null);
   const [leadsCounts, setLeadsCounts] = useState<{ [key: string]: number }>({});
+
+  // Estados para datos dinámicos
+  const [sectors, setSectors] = useState<Sector[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [selectedSector, setSelectedSector] = useState<string>("");
+  const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
+
+  // Hook para notificaciones
+  const { notification, showNotification, hideNotification } = useNotification();
+
+  // Cargar sectores y roles desde la API
+  const loadSectorsAndRoles = async () => {
+    try {
+      const response = await fetch("/api/search/filters");
+      const data = await response.json();
+
+      if (data.success) {
+        setSectors(data.sectors || []);
+        setRoles(data.roles || []);
+      } else {
+        console.error("Error cargando sectores y roles:", data.message);
+        // Usar datos de fallback
+        setSectors(FALLBACK_SECTORS.map((name, index) => ({
+          id: index + 1,
+          name,
+          code: name.toLowerCase().replace(/\s+/g, '_'),
+          description: null,
+          order_index: index + 1
+        })));
+        setRoles(FALLBACK_ROLES.map((name, index) => ({
+          name,
+          code: name.toLowerCase().replace(/\s+/g, '_'),
+          description: null,
+          order_index: index + 1,
+          sector_id: 1 // Asignar al primer sector por defecto
+        })));
+      }
+    } catch (error) {
+      console.error("Error cargando sectores y roles:", error);
+      // Usar datos de fallback
+      setSectors(FALLBACK_SECTORS.map((name, index) => ({
+        id: index + 1,
+        name,
+        code: name.toLowerCase().replace(/\s+/g, '_'),
+        description: null,
+        order_index: index + 1
+      })));
+      setRoles(FALLBACK_ROLES.map((name, index) => ({
+        name,
+        code: name.toLowerCase().replace(/\s+/g, '_'),
+        description: null,
+        order_index: index + 1,
+        sector_id: 1 // Asignar al primer sector por defecto
+      })));
+    }
+  };
+
+    // Función para filtrar roles por sector seleccionado
+  const filterRolesBySector = (sectorName: string) => {
+    if (!sectorName) {
+      setAvailableRoles([]);
+      return;
+    }
+
+    // Buscar el sector seleccionado
+    const selectedSectorData = sectors.find(sector => sector.name === sectorName);
+
+    if (!selectedSectorData) {
+      setAvailableRoles([]);
+      return;
+    }
+
+    // ✅ Filtrar roles usando sector_id (evita duplicados)
+    const sectorRoles = roles.filter(role => role.sector_id === selectedSectorData.id);
+
+    setAvailableRoles(sectorRoles);
+  };
 
   // Cargar campañas desde la base de datos
   useEffect(() => {
@@ -85,6 +184,7 @@ export default function CampaignPage() {
     }
 
     loadCampaigns();
+    loadSectorsAndRoles();
   }, []);
 
   // Función para cargar los conteos de leads por campaña
@@ -136,11 +236,32 @@ export default function CampaignPage() {
 
   async function handleCreateCampaign() {
     try {
+      // Validar que se haya seleccionado un sector
+      if (!selectedSector) {
+        showNotification("Veuillez sélectionner un secteur", "warning");
+        return;
+      }
+
+      // Validar que se hayan seleccionado roles
+      if (selectedRoles.length === 0) {
+        showNotification("Veuillez sélectionner au moins un rôle", "warning");
+        return;
+      }
+
+      // Validar que se haya seleccionado al menos una región
+      if (selectedRegions.length === 0) {
+        showNotification("Veuillez sélectionner au moins une région", "warning");
+        return;
+      }
+
+      // Generar nombre de campaña más descriptivo
+      const campaignName = `${selectedSector} - ${selectedRoles.join(', ')} - ${new Date().toLocaleDateString('fr-FR')}`;
+
       // Datos de la campaña a enviar al webhook
       const campaignData = {
-        name: `Campaña ${new Date().toLocaleDateString()}`,
+        name: campaignName,
         filters: {
-          sectors: selectedSectors,
+          sectors: [selectedSector], // Usar el sector seleccionado
           roles: selectedRoles,
           regions: selectedRegions,
         },
@@ -161,18 +282,17 @@ export default function CampaignPage() {
 
       if (response.ok && result.success) {
         // Campaña creada exitosamente via webhook n8n
-        // Aquí podrías mostrar una notificación de éxito
-        alert(`Campagne créée avec succès! ID: ${result.campaignId}`);
+        showNotification(`Campagne créée avec succès! ID: ${result.campaignId}`, "success");
         setShowModal(false);
         // Recargar la lista de campañas
         window.location.reload();
       } else {
         console.error("Error al crear la campaña:", result.message);
-        alert(`Error: ${result.message}`);
+        showNotification(`Error: ${result.message}`, "error");
       }
     } catch (error) {
       console.error("Error en la llamada al webhook:", error);
-      alert("Erreur de connexion lors de la création de la campagne");
+      showNotification("Erreur de connexion lors de la création de la campagne", "error");
     }
   }
 
@@ -205,16 +325,17 @@ export default function CampaignPage() {
             (campaign) => campaign.campaign_id !== campaignId
           )
         );
-        alert("Campagne désactivée correctement");
+        showNotification("Campagne désactivée correctement", "success");
       } else {
         console.error("❌ Error al desactivar campaña:", data.message);
-        alert(
-          `Erreur lors de la désactivation de la campagne: ${data.message}`
+        showNotification(
+          `Erreur lors de la désactivation de la campagne: ${data.message}`,
+          "error"
         );
       }
     } catch (error) {
       console.error("❌ Error de conexión al desactivar campaña:", error);
-      alert("Erreur de connexion lors de la désactivation de la campagne");
+      showNotification("Erreur de connexion lors de la désactivation de la campagne", "error");
     } finally {
       setDeletingCampaign(null);
     }
@@ -231,9 +352,32 @@ export default function CampaignPage() {
     });
   }
 
-  function cleanValue(value: string | null | undefined): string {
+    function cleanValue(value: string | null | undefined): string {
     if (!value) return "N/A";
-    return value.replace(/'/g, "");
+
+    // Limpiar comillas simples
+    let cleaned = value.replace(/'/g, "");
+
+    // Si contiene comas, formatear con saltos de línea
+    if (cleaned.includes(',')) {
+      return cleaned
+        .split(',')
+        .map(item => item.trim())
+        .filter(item => item.length > 0)
+        .join('\n');
+    }
+
+    // Si contiene "lundi", hacer salto de línea antes de "lundi"
+    if (cleaned.includes('lundi')) {
+      // Primero intentar con guión, luego sin guión
+      if (cleaned.includes('-lundi')) {
+        return cleaned.replace(/-lundi/g, '\nlundi');
+      } else {
+        return cleaned.replace(/lundi/g, '\nlundi');
+      }
+    }
+
+    return cleaned;
   }
 
   function calculateProgress(campaign: any) {
@@ -399,8 +543,8 @@ export default function CampaignPage() {
                       <Target className="w-5 h-5 text-europbots-secondary" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-semibold text-white">
-                        {campaign.campaign_name}
+                      <h3 className="text-lg font-semibold text-white whitespace-pre-line">
+                        {cleanValue(campaign.campaign_name)}
                       </h3>
                       <p className="text-sm text-gray-300">
                         Campagne automatisée LinkedIn
@@ -430,15 +574,15 @@ export default function CampaignPage() {
                 {/* Detalles de la campaña */}
                 <div className="space-y-3 mb-4">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-300">Audience cible:</span>
-                    <span className="text-white font-medium">
-                      {cleanValue(campaign.roles)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
                     <span className="text-gray-300">Secteurs:</span>
                     <span className="text-white font-medium">
                       {cleanValue(campaign.sectors)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-300">Audience cible:</span>
+                    <span className="text-white font-medium whitespace-pre-line text-right">
+                      {cleanValue(campaign.roles)}
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
@@ -564,27 +708,42 @@ export default function CampaignPage() {
                     <Square className="w-4 h-4 text-europbots-secondary" />
                     Secteurs
                   </h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    {SECTORS.map((sector) => (
-                      <label
-                        key={sector}
-                        className="flex items-center gap-3 text-white cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedSectors.includes(sector)}
-                          onChange={() =>
-                            handleToggle(
-                              selectedSectors,
-                              sector,
-                              setSelectedSectors
-                            )
-                          }
-                          className="w-4 h-4 text-europbots-secondary bg-transparent border-europbots-secondary rounded focus:ring-europbots-secondary focus:ring-2"
-                        />
-                        {sector}
+                  <div className="space-y-4">
+                    {/* Select de sectores */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Sélectionnez un secteur
                       </label>
-                    ))}
+                      <select
+                        value={selectedSector}
+                        onChange={(e) => {
+                          const sector = e.target.value;
+                          setSelectedSector(sector);
+                          filterRolesBySector(sector);
+                          // Limpiar roles seleccionados cuando cambia el sector
+                          setSelectedRoles([]);
+                        }}
+                        className="w-full pl-4 pr-4 py-3 bg-white/10 border border-gray-400/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm"
+                        style={{
+                          backgroundColor: "rgba(255, 255, 255, 0.1)",
+                        }}
+                      >
+                        <option value="" style={{ backgroundColor: "#1f2937", color: "#9ca3af" }}>
+                          Sélectionnez un secteur...
+                        </option>
+                        {sectors.map((sector) => (
+                          <option
+                            key={sector.code}
+                            value={sector.name}
+                            style={{ backgroundColor: "#1f2937", color: "#ffffff" }}
+                          >
+                            {sector.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+
                   </div>
                 </div>
 
@@ -592,26 +751,38 @@ export default function CampaignPage() {
                 <div>
                   <h3 className="font-semibold text-white mb-3 flex items-center gap-2">
                     <User className="w-4 h-4 text-europbots-secondary" />
-                    Rôles
+                    Rôles {selectedSector && `(${selectedSector})`}
                   </h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    {ROLES.map((role) => (
-                      <label
-                        key={role}
-                        className="flex items-center gap-3 text-white cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedRoles.includes(role)}
-                          onChange={() =>
-                            handleToggle(selectedRoles, role, setSelectedRoles)
-                          }
-                          className="w-4 h-4 text-europbots-secondary bg-transparent border-europbots-secondary rounded focus:ring-europbots-secondary focus:ring-2"
-                        />
-                        {role}
-                      </label>
-                    ))}
-                  </div>
+                  {selectedSector ? (
+                    <div className="grid grid-cols-2 gap-2">
+                      {availableRoles.length > 0 ? (
+                        availableRoles.map((role) => (
+                          <label
+                            key={role.code}
+                            className="flex items-center gap-3 text-white cursor-pointer"
+                          >
+                            <input
+                              type="checkbox"
+                              checked={selectedRoles.includes(role.name)}
+                              onChange={() =>
+                                handleToggle(selectedRoles, role.name, setSelectedRoles)
+                              }
+                              className="w-4 h-4 text-europbots-secondary bg-transparent border-europbots-secondary rounded focus:ring-europbots-secondary focus:ring-2"
+                            />
+                            {role.name}
+                          </label>
+                        ))
+                      ) : (
+                        <div className="col-span-2 text-gray-400 text-sm">
+                          Aucun rôle disponible pour ce secteur
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-gray-400 text-sm">
+                      Sélectionnez d'abord un secteur pour voir les rôles disponibles
+                    </div>
+                  )}
                 </div>
 
                 {/* Région Européenne */}
@@ -664,6 +835,14 @@ export default function CampaignPage() {
           </div>
         )}
       </main>
+
+      {/* Componente de notificación */}
+      <ToastNotification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.isVisible}
+        onClose={hideNotification}
+      />
     </div>
   );
 }

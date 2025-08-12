@@ -4,31 +4,31 @@ import { getWebhookUrl } from '../../../../lib/webhook'
 export async function POST(request: NextRequest) {
   try {
     console.log('=== INICIO CREATE-CAMPAIGN API ===')
-    
+
     const campaignData = await request.json()
     console.log('Datos recibidos:', campaignData)
-    
-    // Validación de datos
+
+        // Validación de datos
     if (!campaignData.filters?.sectors?.length) {
       console.error('Filtros de sectores requeridos')
-      return NextResponse.json({ 
-        success: false, 
-        message: 'Filtros de sectores requeridos' 
+      return NextResponse.json({
+        success: false,
+        message: 'Filtres de secteurs requis'
       }, { status: 400 })
     }
-    
+
     // Obtener webhook URL
     console.log('Obteniendo webhook URL para automation...')
     let webhookUrl = await getWebhookUrl('automation')
-    if (!webhookUrl) {
+        if (!webhookUrl) {
       console.error('No se encontró webhook URL para automation')
-      return NextResponse.json({ 
-        success: false, 
-        message: 'No se encontró el webhook de campaña' 
+      return NextResponse.json({
+        success: false,
+        message: 'Webhook de campagne introuvable'
       }, { status: 500 })
     }
     console.log('Webhook URL obtenida:', webhookUrl)
-    
+
     // Construir la URL con parámetros
     const url = new URL(webhookUrl)
     url.searchParams.set('sectors', campaignData.filters.sectors.join(','))
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       finalUrl = finalUrl.replace('https://n8n.localhost', 'http://n8n:5678')
     }
     console.log('URL final:', finalUrl)
-    
+
     // Llamar al webhook
     console.log('Llamando webhook de campaña...')
     const n8nResponse = await fetch(finalUrl, {
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       console.error('Error en webhook:', n8nResponse.status, n8nResponse.statusText)
       return NextResponse.json({
         success: false,
-        message: 'Error al procesar la campaña en n8n',
+        message: 'Erreur lors du traitement de la campagne dans n8n',
         error: n8nResponse.statusText
       }, { status: 500 })
     }
@@ -79,8 +79,8 @@ export async function POST(request: NextRequest) {
     console.error('Error en create-campaign:', error)
     return NextResponse.json({
       success: false,
-      message: 'Error interno del servidor',
+      message: 'Erreur interne du serveur',
       error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 })
   }
-} 
+}

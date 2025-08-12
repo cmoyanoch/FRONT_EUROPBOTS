@@ -1,40 +1,19 @@
-import { NextResponse } from 'next/server'
-import { Pool } from 'pg'
+import { NextResponse } from 'next/server';
+import { Pool } from 'pg';
 
 // Configuración de la base de datos
 const pool = new Pool({
-  user: process.env.DB_USER || 'postgres',
-  host: process.env.DB_HOST || 'n8n_postgres',
-  database: process.env.DB_NAME || 'postgres',
-  password: process.env.DB_PASSWORD || 'postgres',
+  user: process.env.DB_USER || 'n8n_user',
+  host: process.env.DB_HOST || 'server_europbot-n8n_postgres-1',
+  database: process.env.DB_NAME || 'n8n_db',
+  password: process.env.DB_PASSWORD || '3Lchunch0',
   port: parseInt(process.env.DB_PORT || '5432'),
 })
 
-// Datos de ejemplo para cuando la base de datos no esté disponible
-const fallbackFilters = {
-  sectors: [
-    { name: 'Technologie', code: 'tech', description: 'Secteur technologique', order_index: 1 },
-    { name: 'Finance', code: 'finance', description: 'Secteur financier', order_index: 2 },
-    { name: 'Santé', code: 'health', description: 'Secteur de la santé', order_index: 3 },
-    { name: 'Éducation', code: 'education', description: 'Secteur éducatif', order_index: 4 },
-    { name: 'Commerce', code: 'retail', description: 'Commerce de détail', order_index: 5 }
-  ],
-  roles: [
-    { name: 'CEO', code: 'ceo', description: 'Directeur Général', order_index: 1 },
-    { name: 'CTO', code: 'cto', description: 'Directeur Technique', order_index: 2 },
-    { name: 'Director de Operaciones', code: 'operations', description: 'Directeur des Opérations', order_index: 3 },
-    { name: 'VP de Ventas', code: 'sales', description: 'VP des Ventes', order_index: 4 },
-    { name: 'Manager', code: 'manager', description: 'Gestionnaire', order_index: 5 }
-  ],
+// Datos estáticos para países
+const staticData = {
   countries: [
     { name: 'France', code: 'fr', description: 'France', order_index: 1 },
-  ],
-  companySizes: [
-    { name: '1-10 employés', code: '1-10', description: 'Très petite entreprise', order_index: 1 },
-    { name: '11-50 employés', code: '11-50', description: 'Petite entreprise', order_index: 2 },
-    { name: '51-200 employés', code: '51-200', description: 'Moyenne entreprise', order_index: 3 },
-    { name: '201-1000 employés', code: '201-1000', description: 'Grande entreprise', order_index: 4 },
-    { name: '1000+ employés', code: '1000+', description: 'Très grande entreprise', order_index: 5 }
   ]
 }
 
@@ -43,10 +22,28 @@ export async function GET() {
     const client = await pool.connect()
 
     try {
-      // Obtener todos los filtros activos usando la función que creamos
-      const result = await client.query(`
-        SELECT * FROM webapp.get_active_search_filters()
-        ORDER BY filter_type, order_index
+      // Obtener sectores desde la tabla webapp.sectors
+      const sectorsResult = await client.query(`
+        SELECT
+          id,
+          name,
+          code,
+          description,
+          order_index
+        FROM webapp.sectors
+        WHERE is_active = true
+        ORDER BY order_index
+      `)
+
+      // Obtener roles desde la tabla webapp.roles
+      const rolesResult = await client.query(`
+        SELECT
+          r.name,
+          r.order_index,
+          r.sector_id
+        FROM webapp.roles r
+        WHERE r.is_active = true
+        ORDER BY r.order_index
       `)
 
       // Definir tipos para los filtros
@@ -62,37 +59,23 @@ export async function GET() {
         sectors: FilterItem[]
         roles: FilterItem[]
         countries: FilterItem[]
-        companySizes: FilterItem[]
       } = {
-        sectors: [],
-        roles: [],
-        countries: [],
-        companySizes: []
-      }
-
-      result.rows.forEach(row => {
-        const filterItem = {
+        sectors: sectorsResult.rows.map(row => ({
+          id: row.id,
           name: row.name,
           code: row.code,
           description: row.description,
           order_index: row.order_index
-        }
-
-        switch (row.filter_type) {
-          case 'industry':
-            filters.sectors.push(filterItem)
-            break
-          case 'job_title':
-            filters.roles.push(filterItem)
-            break
-          case 'location':
-            filters.countries.push(filterItem)
-            break
-          case 'company_size':
-            filters.companySizes.push(filterItem)
-            break
-        }
-      })
+        })),
+        roles: rolesResult.rows.map(row => ({
+          name: row.name,
+          code: row.name.toLowerCase().replace(/\s+/g, '_'),
+          description: null,
+          order_index: row.order_index,
+          sector_id: row.sector_id
+        })),
+        countries: staticData.countries
+      }
 
       return NextResponse.json({
         success: true,
@@ -104,12 +87,13 @@ export async function GET() {
     }
 
   } catch (error) {
-    console.error('Error obteniendo filtros de la base de datos, usando datos de ejemplo:', error)
+    console.error('Error obteniendo filtros de la base de datos:', error)
 
-    // Devolver datos de ejemplo cuando la base de datos no esté disponible
+    // Devolver error cuando la base de datos no esté disponible
     return NextResponse.json({
-      success: true,
-      ...fallbackFilters
-    })
+      success: false,
+      error: 'Error de conexión a la base de datos',
+      message: error instanceof Error ? error.message : 'Error desconocido'
+    }, { status: 500 })
   }
 }

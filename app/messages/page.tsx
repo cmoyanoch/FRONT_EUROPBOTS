@@ -1,14 +1,15 @@
 "use client";
 
 import FuturisticBackground from "@/components/futuristic-background";
+import { ToastNotification, useNotification } from "@/components/ui/notification";
 import {
-    Edit,
-    Eye,
-    FileText,
-    Plus,
-    Save,
-    Trash2,
-    X
+  Edit,
+  Eye,
+  FileText,
+  Plus,
+  Save,
+  Trash2,
+  X
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -23,10 +24,18 @@ interface MessageTemplate {
   updated_at: string;
 }
 
+interface Sector {
+  name: string;
+  code: string;
+  description: string | null;
+  order_index: number;
+}
+
 const TEMPLATE_TYPES = ["LinkedIn Autoconnect", "LinkedIn Message Sender"];
 
 export default function MessagesPage() {
   const [templates, setTemplates] = useState<MessageTemplate[]>([]);
+  const [sectors, setSectors] = useState<Sector[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Estados para el CRUD
@@ -38,6 +47,13 @@ export default function MessagesPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(8);
 
+  // Estados para validación
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Sistema de notificaciones
+  const { notification, showNotification, hideNotification } = useNotification();
+
   // Formulario
   const [formData, setFormData] = useState({
     name: "",
@@ -45,6 +61,65 @@ export default function MessagesPage() {
     sector: "",
     type: "",
   });
+
+  // Función de validación
+  const validateForm = () => {
+    const newErrors: {[key: string]: string} = {};
+
+    // Validar nombre
+    if (!formData.name.trim()) {
+      newErrors.name = "Le nom du template est requis";
+    } else if (formData.name.trim().length < 3) {
+      newErrors.name = "Le nom doit contenir au moins 3 caractères";
+    } else if (formData.name.trim().length > 100) {
+      newErrors.name = "Le nom ne peut pas dépasser 100 caractères";
+    }
+
+    // Validar contenido
+    if (!formData.content.trim()) {
+      newErrors.content = "Le contenu du message est requis";
+    } else if (formData.content.trim().length < 10) {
+      newErrors.content = "Le contenu doit contenir au moins 10 caractères";
+    } else {
+      const maxLength = formData.type === "LinkedIn Autoconnect" ? 300 :
+                       formData.type === "LinkedIn Message Sender" ? 8000 : 2000;
+      if (formData.content.trim().length > maxLength) {
+        newErrors.content = `Le contenu ne peut pas dépasser ${maxLength} caractères`;
+      }
+    }
+
+    // Validar sector
+    if (!formData.sector) {
+      newErrors.sector = "Veuillez sélectionner un secteur";
+    }
+
+    // Validar tipo
+    if (!formData.type) {
+      newErrors.type = "Veuillez sélectionner un type de template";
+    }
+
+    // Validar que no exista ya un template del mismo tipo en el mismo sector
+    if (formData.sector && formData.type && checkTemplateTypeExists(formData.type, formData.sector)) {
+      newErrors.type = `Un template de type "${formData.type}" existe déjà pour le secteur "${formData.sector}". Vous ne pouvez créer qu'un seul template par type par secteur.`;
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // Cargar sectores
+  const loadSectors = async () => {
+    try {
+      const response = await fetch("/api/search/filters");
+      const data = await response.json();
+      if (data.success && data.sectors) {
+        setSectors(data.sectors);
+      }
+    } catch (error) {
+      console.error("Error loading sectors:", error);
+      showNotification("Erreur lors du chargement des secteurs", "error");
+    }
+  };
 
   // Cargar templates
   const loadTemplates = async () => {
@@ -57,6 +132,7 @@ export default function MessagesPage() {
       }
     } catch (error) {
       console.error("Error loading templates:", error);
+      showNotification("Erreur lors du chargement des templates", "error");
     } finally {
       setLoading(false);
     }
@@ -69,12 +145,12 @@ export default function MessagesPage() {
 
   // Crear template
   const createTemplate = async () => {
-    // Validar que no exista ya un template del mismo tipo en el mismo sector
-    if (checkTemplateTypeExists(formData.type, formData.sector)) {
-      alert(`Un template de type "${formData.type}" existe déjà pour le secteur "${formData.sector}". Vous ne pouvez créer qu'un seul template par type par secteur.`);
+    if (!validateForm()) {
+      showNotification("Veuillez corriger les erreurs dans le formulaire", "warning");
       return;
     }
 
+    setIsSubmitting(true);
     try {
       const response = await fetch("/api/message-templates", {
         method: "POST",
@@ -86,15 +162,28 @@ export default function MessagesPage() {
         await loadTemplates();
         resetForm();
         setIsCreating(false);
+        showNotification("Template créé avec succès", "success");
+      } else {
+        showNotification(data.message || "Erreur lors de la création du template", "error");
       }
     } catch (error) {
       console.error("Error creating template:", error);
+      showNotification("Erreur lors de la création du template", "error");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   // Actualizar template
   const updateTemplate = async () => {
     if (!editingId) return;
+
+    if (!validateForm()) {
+      showNotification("Veuillez corriger les erreurs dans le formulaire", "warning");
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
       const response = await fetch(`/api/message-templates/${editingId}`, {
         method: "PUT",
@@ -106,9 +195,15 @@ export default function MessagesPage() {
         await loadTemplates();
         resetForm();
         setEditingId(null);
+        showNotification("Template mis à jour avec succès", "success");
+      } else {
+        showNotification(data.message || "Erreur lors de la mise à jour du template", "error");
       }
     } catch (error) {
       console.error("Error updating template:", error);
+      showNotification("Erreur lors de la mise à jour du template", "error");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -122,9 +217,13 @@ export default function MessagesPage() {
       const data = await response.json();
       if (data.success) {
         await loadTemplates();
+        showNotification("Template supprimé avec succès", "success");
+      } else {
+        showNotification(data.message || "Erreur lors de la suppression du template", "error");
       }
     } catch (error) {
       console.error("Error deleting template:", error);
+      showNotification("Erreur lors de la suppression du template", "error");
     }
   };
 
@@ -137,6 +236,7 @@ export default function MessagesPage() {
       type: template.type,
     });
     setEditingId(template.id);
+    setErrors({});
   };
 
   // Ver template
@@ -148,6 +248,7 @@ export default function MessagesPage() {
       type: template.type,
     });
     setViewingId(template.id);
+    setErrors({});
   };
 
   // Resetear formulario
@@ -158,6 +259,7 @@ export default function MessagesPage() {
       sector: "",
       type: "",
     });
+    setErrors({});
   };
 
   // Cancelar formulario
@@ -173,9 +275,10 @@ export default function MessagesPage() {
     setCurrentPage(page);
   };
 
-  // Cargar templates al montar el componente
+  // Cargar templates y sectores al montar el componente
   useEffect(() => {
     loadTemplates();
+    loadSectors();
   }, []);
 
   // Filtrar templates
@@ -190,6 +293,14 @@ export default function MessagesPage() {
   return (
     <div className="min-h-screen relative">
       <FuturisticBackground />
+
+      {/* Componente de notificación */}
+      <ToastNotification
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.isVisible}
+        onClose={hideNotification}
+      />
 
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header con título y botón */}
@@ -245,55 +356,51 @@ export default function MessagesPage() {
                 {/* Nombre */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Nom du Template
+                    Nom du Template *
                   </label>
                   <input
                     type="text"
                     value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
+                    onChange={(e) => {
+                      setFormData({ ...formData, name: e.target.value });
+                      if (errors.name) {
+                        setErrors({ ...errors, name: "" });
+                      }
+                    }}
                     disabled={!!viewingId}
-                    className="w-full pl-4 pr-4 py-3 bg-white/10 border border-gray-400/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm disabled:opacity-50"
+                    className={`w-full pl-4 pr-4 py-3 bg-white/10 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm disabled:opacity-50 ${
+                      errors.name ? 'border-red-500' : 'border-gray-400/30'
+                    }`}
                     placeholder="Entrez le nom du template..."
                     style={{
                       backgroundColor: "rgba(255, 255, 255, 0.1)",
                     }}
                   />
-                </div>
-
-                {/* Contenido */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Contenu du Message
-                  </label>
-                  <textarea
-                    value={formData.content}
-                    onChange={(e) =>
-                      setFormData({ ...formData, content: e.target.value })
-                    }
-                    disabled={!!viewingId}
-                    rows={6}
-                    className="w-full pl-4 pr-4 py-3 bg-white/10 border border-gray-400/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm resize-none disabled:opacity-50"
-                    placeholder="Entrez le contenu du message..."
-                    style={{
-                      backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    }}
-                  />
+                  {errors.name && (
+                    <p className="mt-1 text-sm text-red-400">{errors.name}</p>
+                  )}
                 </div>
 
                 {/* Sector */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Secteur
+                    Secteur *
                   </label>
                   <select
                     value={formData.sector}
-                    onChange={(e) =>
-                      setFormData({ ...formData, sector: e.target.value })
-                    }
+                    onChange={(e) => {
+                      setFormData({ ...formData, sector: e.target.value, type: "" });
+                      if (errors.sector) {
+                        setErrors({ ...errors, sector: "" });
+                      }
+                      if (errors.type) {
+                        setErrors({ ...errors, type: "" });
+                      }
+                    }}
                     disabled={!!viewingId}
-                    className="w-full pl-4 pr-4 py-3 bg-white/10 border border-gray-400/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm disabled:opacity-50"
+                    className={`w-full pl-4 pr-4 py-3 bg-white/10 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm disabled:opacity-50 ${
+                      errors.sector ? 'border-red-500' : 'border-gray-400/30'
+                    }`}
                     style={{
                       backgroundColor: "rgba(255, 255, 255, 0.1)",
                     }}
@@ -301,45 +408,44 @@ export default function MessagesPage() {
                     <option value="" disabled style={{ backgroundColor: "#1f2937", color: "#9ca3af" }}>
                       Sélectionnez un secteur...
                     </option>
-                    <option value="Technologie" style={{ backgroundColor: "#1f2937", color: "#ffffff" }}>
-                      Technologie
-                    </option>
-                    <option value="Finance" style={{ backgroundColor: "#1f2937", color: "#ffffff" }}>
-                      Finance
-                    </option>
-                    <option value="Santé" style={{ backgroundColor: "#1f2937", color: "#ffffff" }}>
-                      Santé
-                    </option>
-                    <option value="Éducation" style={{ backgroundColor: "#1f2937", color: "#ffffff" }}>
-                      Éducation
-                    </option>
-                    <option value="Commerce" style={{ backgroundColor: "#1f2937", color: "#ffffff" }}>
-                      Commerce
-                    </option>
-                    <option value="Autre" style={{ backgroundColor: "#1f2937", color: "#ffffff" }}>
-                      Autre
-                    </option>
+                    {sectors.map((sector) => (
+                      <option
+                        key={sector.code}
+                        value={sector.name}
+                        style={{ backgroundColor: "#1f2937", color: "#ffffff" }}
+                      >
+                        {sector.name}
+                      </option>
+                    ))}
                   </select>
+                  {errors.sector && (
+                    <p className="mt-1 text-sm text-red-400">{errors.sector}</p>
+                  )}
                 </div>
 
                 {/* Type */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Gars
+                    Type *
                   </label>
                   <select
                     value={formData.type}
-                    onChange={(e) =>
-                      setFormData({ ...formData, type: e.target.value })
-                    }
-                    disabled={!!viewingId}
-                    className="w-full pl-4 pr-4 py-3 bg-white/10 border border-gray-400/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm disabled:opacity-50"
+                    onChange={(e) => {
+                      setFormData({ ...formData, type: e.target.value });
+                      if (errors.type) {
+                        setErrors({ ...errors, type: "" });
+                      }
+                    }}
+                    disabled={!!viewingId || !formData.sector}
+                    className={`w-full pl-4 pr-4 py-3 bg-white/10 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm disabled:opacity-50 ${
+                      errors.type ? 'border-red-500' : 'border-gray-400/30'
+                    }`}
                     style={{
                       backgroundColor: "rgba(255, 255, 255, 0.1)",
                     }}
                   >
                     <option value="" disabled style={{ backgroundColor: "#1f2937", color: "#9ca3af" }}>
-                      Sélectionnez un type de template...
+                      {!formData.sector ? "Sélectionnez d'abord un secteur..." : "Sélectionnez un type de template..."}
                     </option>
                     {TEMPLATE_TYPES.map((type) => {
                       const isTypeUsed = formData.sector ? checkTemplateTypeExists(type, formData.sector) : false;
@@ -358,6 +464,57 @@ export default function MessagesPage() {
                       );
                     })}
                   </select>
+                  {errors.type && (
+                    <p className="mt-1 text-sm text-red-400">{errors.type}</p>
+                  )}
+                </div>
+
+                {/* Contenido */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Contenu du Message *
+                  </label>
+                  <textarea
+                    value={formData.content}
+                    onChange={(e) => {
+                      const newContent = e.target.value;
+                      // Aplicar límite de caracteres según el tipo seleccionado
+                      const maxLength = formData.type === "LinkedIn Autoconnect" ? 300 :
+                                      formData.type === "LinkedIn Message Sender" ? 8000 : 2000;
+                      if (newContent.length > maxLength) {
+                        return; // No permitir más caracteres del límite establecido
+                      }
+                      setFormData({ ...formData, content: newContent });
+                      if (errors.content) {
+                        setErrors({ ...errors, content: "" });
+                      }
+                    }}
+                    disabled={!!viewingId}
+                    rows={6}
+                                        placeholder={formData.type === "LinkedIn Message Sender"
+                      ? "Hey #firstName#, let's chat!\n\nBest regards,"
+                      : formData.type === "LinkedIn Autoconnect"
+                      ? "Hey #firstName#, let's connect!\n\nBest regards"
+                      : "Entrez le contenu de votre message..."}
+                    maxLength={formData.type === "LinkedIn Autoconnect" ? 300 :
+                             formData.type === "LinkedIn Message Sender" ? 8000 : 2000}
+                    className={`w-full pl-4 pr-4 py-3 bg-white/10 border rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm resize-none disabled:opacity-50 ${
+                      errors.content ? 'border-red-500' : 'border-gray-400/30'
+                    }`}
+
+                    style={{
+                      backgroundColor: "rgba(255, 255, 255, 0.1)",
+                    }}
+                  />
+                  {errors.content && (
+                    <p className="mt-1 text-sm text-red-400">{errors.content}</p>
+                  )}
+                  <div className="flex justify-between items-center mt-1">
+                    <p className="text-xs text-gray-400">
+                      {formData.content.length}/{formData.type === "LinkedIn Autoconnect" ? 300 :
+                       formData.type === "LinkedIn Message Sender" ? 8000 : 2000} caractères
+                    </p>
+                  </div>
                 </div>
 
                 {/* Botones */}
@@ -366,15 +523,22 @@ export default function MessagesPage() {
                     <button
                       type="button"
                       onClick={cancelForm}
-                      className="px-4 py-2 bg-gray-500/20 text-gray-300 rounded-lg hover:bg-gray-500/30 transition-colors"
+                      disabled={isSubmitting}
+                      className="px-4 py-2 bg-gray-500/20 text-gray-300 rounded-lg hover:bg-gray-500/30 transition-colors disabled:opacity-50"
                     >
                       Annuler
                     </button>
                     <button
                       type="submit"
-                      className="px-4 py-2 bg-europbots-secondary text-black font-semibold rounded-lg hover:bg-europbots-secondary/80 transition-colors flex items-center"
+                      disabled={isSubmitting}
+                      className="px-4 py-2 bg-europbots-secondary text-black font-semibold rounded-lg hover:bg-europbots-secondary/80 transition-colors flex items-center disabled:opacity-50"
                     >
-                      {isCreating ? (
+                      {isSubmitting ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2"></div>
+                          {isCreating ? "Création..." : "Sauvegarde..."}
+                        </>
+                      ) : isCreating ? (
                         <>
                           <Plus className="w-4 h-4 mr-2" />
                           Créer
@@ -395,20 +559,20 @@ export default function MessagesPage() {
 
         {/* Tabla de Templates */}
         <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 overflow-hidden w-full">
-          <div className="overflow-x-auto w-full">
-            <table className="w-full min-w-full">
+          <div className="w-full">
+            <table className="w-full table-fixed">
               <thead className="bg-white/5">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="w-2/5 px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Modèle
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="w-1/5 px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Secteur
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Gars
+                  <th className="w-1/5 px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                    Type
                   </th>
-                  <th className="px-6 py-4 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="w-1/5 px-6 py-4 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -434,29 +598,29 @@ export default function MessagesPage() {
                       key={template.id}
                       className="hover:bg-white/5 transition-colors"
                     >
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="w-2/5 px-6 py-4">
                         <div className="flex items-center">
-                          <div className="bg-europbots-secondary/20 p-2 rounded-lg mr-3">
+                          <div className="bg-europbots-secondary/20 p-2 rounded-lg mr-3 flex-shrink-0">
                             <FileText className="w-5 h-5 text-europbots-secondary" />
                           </div>
-                          <div>
-                            <div className="text-sm font-medium text-white">
+                          <div className="min-w-0 flex-1">
+                            <div className="text-sm font-medium text-white truncate">
                               {template.name}
                             </div>
-                            <div className="text-sm text-gray-300 line-clamp-2 mt-1">
-                              {template.content.substring(0, 100)}...
+                            <div className="text-sm text-gray-300 truncate mt-1">
+                              {template.content.substring(0, 50)}...
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      <td className="w-1/5 px-6 py-4">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 truncate">
                           {template.sector}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="w-1/5 px-6 py-4">
                         <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium truncate ${
                             template.type === "LinkedIn Autoconnect"
                               ? "bg-green-100 text-green-800"
                               : template.type === "LinkedIn Message Sender"
@@ -467,7 +631,7 @@ export default function MessagesPage() {
                           {template.type}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="w-1/5 px-6 py-4 text-right text-sm font-medium">
                         <div className="flex items-center justify-end space-x-2">
                           <button
                             onClick={() => viewTemplate(template)}
