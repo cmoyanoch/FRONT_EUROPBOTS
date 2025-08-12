@@ -1,18 +1,14 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import FuturisticBackground from "@/components/futuristic-background";
 import {
-  CheckCircle,
-  Edit,
-  Eye,
-  FileText,
-  Link,
-  MessageSquare,
-  Plus,
-  Save,
-  Trash2,
-  X,
+    Edit,
+    Eye,
+    FileText,
+    Plus,
+    Save,
+    Trash2,
+    X
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -27,20 +23,7 @@ interface MessageTemplate {
   updated_at: string;
 }
 
-const SECTORS = [
-  "Technologie",
-  "Finance",
-  "Commerce",
-  "Consulting",
-  "Real Estate",
-  "Santé",
-  "Éducation",
-  "Manufacturing",
-  "Media",
-  "Government",
-];
-
-const TEMPLATE_TYPES = ["visitor", "auto_connect", "messenger", "general"];
+const TEMPLATE_TYPES = ["LinkedIn Autoconnect", "LinkedIn Message Sender"];
 
 export default function MessagesPage() {
   const [templates, setTemplates] = useState<MessageTemplate[]>([]);
@@ -51,12 +34,16 @@ export default function MessagesPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [viewingId, setViewingId] = useState<number | null>(null);
 
+  // Estados para paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(8);
+
   // Formulario
   const [formData, setFormData] = useState({
     name: "",
     content: "",
-    sector: "Technologie",
-    type: "visitor",
+    sector: "",
+    type: "",
   });
 
   // Cargar templates
@@ -64,100 +51,102 @@ export default function MessagesPage() {
     try {
       setLoading(true);
       const response = await fetch("/api/message-templates");
-      const result = await response.json();
-
-      if (result.success) {
-        setTemplates(result.data);
+      const data = await response.json();
+      if (data.success) {
+        setTemplates(data.data);
       }
     } catch (error) {
-      console.error("Erreur lors du chargement des templates:", error);
+      console.error("Error loading templates:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    loadTemplates();
-  }, []);
+  // Verificar si ya existe un template del tipo seleccionado en el mismo sector
+  const checkTemplateTypeExists = (type: string, sector: string) => {
+    return templates.some(template => template.type === type && template.sector === sector);
+  };
 
   // Crear template
   const createTemplate = async () => {
+    // Validar que no exista ya un template del mismo tipo en el mismo sector
+    if (checkTemplateTypeExists(formData.type, formData.sector)) {
+      alert(`Un template de type "${formData.type}" existe déjà pour le secteur "${formData.sector}". Vous ne pouvez créer qu'un seul template par type par secteur.`);
+      return;
+    }
+
     try {
       const response = await fetch("/api/message-templates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-
-      const result = await response.json();
-
-      if (result.success) {
-        setIsCreating(false);
+      const data = await response.json();
+      if (data.success) {
+        await loadTemplates();
         resetForm();
-        loadTemplates();
+        setIsCreating(false);
       }
     } catch (error) {
-      console.error("Erreur lors de la création du template:", error);
+      console.error("Error creating template:", error);
     }
   };
 
   // Actualizar template
   const updateTemplate = async () => {
     if (!editingId) return;
-
     try {
       const response = await fetch(`/api/message-templates/${editingId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
       });
-
-      const result = await response.json();
-
-      if (result.success) {
-        setEditingId(null);
+      const data = await response.json();
+      if (data.success) {
+        await loadTemplates();
         resetForm();
-        loadTemplates();
+        setEditingId(null);
       }
     } catch (error) {
-      console.error("Erreur lors de la mise à jour du template:", error);
+      console.error("Error updating template:", error);
     }
   };
 
   // Eliminar template
   const deleteTemplate = async (id: number) => {
-    if (!confirm("¿Estás seguro de que quieres eliminar este template?")) {
-      return;
-    }
-
+    if (!confirm("Êtes-vous sûr de vouloir supprimer ce template ?")) return;
     try {
       const response = await fetch(`/api/message-templates/${id}`, {
         method: "DELETE",
       });
-
-      const result = await response.json();
-
-      if (result.success) {
-        loadTemplates();
+      const data = await response.json();
+      if (data.success) {
+        await loadTemplates();
       }
     } catch (error) {
-      console.error("Erreur lors de la suppression du template:", error);
+      console.error("Error deleting template:", error);
     }
   };
 
   // Editar template
   const editTemplate = (template: MessageTemplate) => {
-    setEditingId(template.id);
     setFormData({
       name: template.name,
       content: template.content,
       sector: template.sector,
       type: template.type,
     });
+    setEditingId(template.id);
   };
 
   // Ver template
   const viewTemplate = (template: MessageTemplate) => {
+    setFormData({
+      name: template.name,
+      content: template.content,
+      sector: template.sector,
+      type: template.type,
+    });
     setViewingId(template.id);
   };
 
@@ -166,488 +155,258 @@ export default function MessagesPage() {
     setFormData({
       name: "",
       content: "",
-      sector: "Technologie",
-      type: "visitor",
+      sector: "",
+      type: "",
     });
   };
 
   // Cancelar formulario
   const cancelForm = () => {
+    resetForm();
     setIsCreating(false);
     setEditingId(null);
-    resetForm();
+    setViewingId(null);
   };
+
+  // Función para cambiar de página
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  // Cargar templates al montar el componente
+  useEffect(() => {
+    loadTemplates();
+  }, []);
 
   // Filtrar templates
   const filteredTemplates = templates;
 
-  // Calcular métricas
-  const totalTemplates = templates.length;
-  const activeTemplates = templates.filter((t) => t.is_active).length;
-  const autoConnectTemplates = templates.filter(
-    (t) => t.type === "auto_connect"
-  ).length;
-  const messengerTemplates = templates.filter(
-    (t) => t.type === "messenger"
-  ).length;
+  // Lógica de paginación
+  const totalPages = Math.ceil(filteredTemplates.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentTemplates = filteredTemplates.slice(startIndex, endIndex);
 
   return (
     <div className="min-h-screen relative">
-      {/* Fondo cuadriculado futurista */}
-      <div className="futuristic-bg fixed inset-0 -z-10">
-        {/* Grid pattern */}
-        <div className="energy-grid"></div>
+      <FuturisticBackground />
 
-        {/* Puntos verdes dispersos */}
-        <div className="energy-dots">
-          <div
-            className="absolute w-1 h-1 bg-green-500 rounded-full animate-pulse"
-            style={{
-              left: "10%",
-              top: "15%",
-              animationDelay: "0s",
-              animationDuration: "3s",
-            }}
-          />
-          <div
-            className="absolute w-1 h-1 bg-green-500 rounded-full animate-pulse"
-            style={{
-              left: "25%",
-              top: "8%",
-              animationDelay: "0.5s",
-              animationDuration: "2.5s",
-            }}
-          />
-          <div
-            className="absolute w-1 h-1 bg-green-500 rounded-full animate-pulse"
-            style={{
-              left: "45%",
-              top: "22%",
-              animationDelay: "1s",
-              animationDuration: "3.5s",
-            }}
-          />
-          <div
-            className="absolute w-1 h-1 bg-green-500 rounded-full animate-pulse"
-            style={{
-              left: "65%",
-              top: "12%",
-              animationDelay: "1.5s",
-              animationDuration: "2s",
-            }}
-          />
-          <div
-            className="absolute w-1 h-1 bg-green-500 rounded-full animate-pulse"
-            style={{
-              left: "85%",
-              top: "18%",
-              animationDelay: "2s",
-              animationDuration: "3s",
-            }}
-          />
-          <div
-            className="absolute w-1 h-1 bg-green-500 rounded-full animate-pulse"
-            style={{
-              left: "15%",
-              top: "35%",
-              animationDelay: "0.3s",
-              animationDuration: "2.8s",
-            }}
-          />
-          <div
-            className="absolute w-1 h-1 bg-green-500 rounded-full animate-pulse"
-            style={{
-              left: "35%",
-              top: "45%",
-              animationDelay: "0.8s",
-              animationDuration: "3.2s",
-            }}
-          />
-          <div
-            className="absolute w-1 h-1 bg-green-500 rounded-full animate-pulse"
-            style={{
-              left: "55%",
-              top: "38%",
-              animationDelay: "1.2s",
-              animationDuration: "2.3s",
-            }}
-          />
-          <div
-            className="absolute w-1 h-1 bg-green-500 rounded-full animate-pulse"
-            style={{
-              left: "75%",
-              top: "42%",
-              animationDelay: "1.7s",
-              animationDuration: "2.7s",
-            }}
-          />
-          <div
-            className="absolute w-1 h-1 bg-green-500 rounded-full animate-pulse"
-            style={{
-              left: "90%",
-              top: "55%",
-              animationDelay: "0.2s",
-              animationDuration: "3.1s",
-            }}
-          />
-          <div
-            className="absolute w-1 h-1 bg-green-500 rounded-full animate-pulse"
-            style={{
-              left: "5%",
-              top: "65%",
-              animationDelay: "0.6s",
-              animationDuration: "2.9s",
-            }}
-          />
-          <div
-            className="absolute w-1 h-1 bg-green-500 rounded-full animate-pulse"
-            style={{
-              left: "20%",
-              top: "75%",
-              animationDelay: "1.1s",
-              animationDuration: "2.4s",
-            }}
-          />
-          <div
-            className="absolute w-1 h-1 bg-green-500 rounded-full animate-pulse"
-            style={{
-              left: "40%",
-              top: "68%",
-              animationDelay: "1.4s",
-              animationDuration: "3.3s",
-            }}
-          />
-          <div
-            className="absolute w-1 h-1 bg-green-500 rounded-full animate-pulse"
-            style={{
-              left: "60%",
-              top: "78%",
-              animationDelay: "0.9s",
-              animationDuration: "2.6s",
-            }}
-          />
-          <div
-            className="absolute w-1 h-1 bg-green-500 rounded-full animate-pulse"
-            style={{
-              left: "80%",
-              top: "72%",
-              animationDelay: "1.8s",
-              animationDuration: "2.1s",
-            }}
-          />
-          <div
-            className="absolute w-1 h-1 bg-green-500 rounded-full animate-pulse"
-            style={{
-              left: "95%",
-              top: "85%",
-              animationDelay: "0.4s",
-              animationDuration: "3.4s",
-            }}
-          />
-          <div
-            className="absolute w-1 h-1 bg-green-500 rounded-full animate-pulse"
-            style={{
-              left: "12%",
-              top: "88%",
-              animationDelay: "1.3s",
-              animationDuration: "2.8s",
-            }}
-          />
-          <div
-            className="absolute w-1 h-1 bg-green-500 rounded-full animate-pulse"
-            style={{
-              left: "30%",
-              top: "92%",
-              animationDelay: "0.7s",
-              animationDuration: "2.2s",
-            }}
-          />
-          <div
-            className="absolute w-1 h-1 bg-green-500 rounded-full animate-pulse"
-            style={{
-              left: "50%",
-              top: "88%",
-              animationDelay: "1.6s",
-              animationDuration: "3s",
-            }}
-          />
-          <div
-            className="absolute w-1 h-1 bg-green-500 rounded-full animate-pulse"
-            style={{
-              left: "70%",
-              top: "95%",
-              animationDelay: "0.1s",
-              animationDuration: "2.5s",
-            }}
-          />
-        </div>
-      </div>
-
-      {/* Contenido principal */}
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 relative z-10">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">
-                Templates de Messages
-              </h1>
-              <p className="text-gray-300">
-                Gérez et personnalisez vos templates de messages automatiques
-              </p>
-            </div>
-            <div className="flex space-x-3">
-              <button
-                onClick={() => setIsCreating(true)}
-                className="bg-europbots-secondary text-europbots-primary font-bold py-3 px-6 rounded-lg hover:bg-europbots-secondary/90 transition-colors flex items-center space-x-2"
-              >
-                <Plus className="w-5 h-5" />
-                <span>Nouveau Template</span>
-              </button>
-            </div>
+        {/* Header con título y botón */}
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              Modèles de messages
+            </h1>
+                                      <p className="text-gray-300">
+              Gérez vos modèles de messages pour les campagnes LinkedIn
+            </p>
+            <p className="text-sm text-gray-400 mt-1">
+              Vous pouvez créer 2 templates par secteur (1 LinkedIn Autoconnect + 1 LinkedIn Message Sender par secteur).
+            </p>
           </div>
+                    <button
+            onClick={() => setIsCreating(true)}
+            className="font-bold py-3 px-6 rounded-lg transition-colors flex items-center space-x-2 bg-europbots-secondary text-europbots-primary hover:bg-europbots-secondary/90"
+          >
+            <Plus className="w-5 h-5" />
+            <span>Nouveau Template</span>
+          </button>
         </div>
 
-        {/* Métricas */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-300">
-                  Total Templates
-                </p>
-                <p className="text-2xl font-bold text-white mt-1">
-                  {totalTemplates}
-                </p>
-              </div>
-              <div className="bg-blue-500/20 p-3 rounded-lg">
-                <FileText className="w-6 h-6 text-blue-400" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-300">Actifs</p>
-                <p className="text-2xl font-bold text-white mt-1">
-                  {activeTemplates}
-                </p>
-              </div>
-              <div className="bg-green-500/20 p-3 rounded-lg">
-                <CheckCircle className="w-6 h-6 text-green-400" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-300">
-                  Auto Connect
-                </p>
-                <p className="text-2xl font-bold text-white mt-1">
-                  {autoConnectTemplates}
-                </p>
-              </div>
-              <div className="bg-purple-500/20 p-3 rounded-lg">
-                <Link className="w-6 h-6 text-purple-400" />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-300">Messenger</p>
-                <p className="text-2xl font-bold text-white mt-1">
-                  {messengerTemplates}
-                </p>
-              </div>
-              <div className="bg-orange-500/20 p-3 rounded-lg">
-                <MessageSquare className="w-6 h-6 text-orange-400" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Formulario de creación/edición */}
-        {isCreating && (
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6 mb-8">
-            <h3 className="text-xl font-semibold text-white mb-4">
-              Créer Nouveau Template
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Nom
-                </label>
-                <Input
-                  type="text"
-                  placeholder="Nom du template"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  className="w-full pl-4 pr-4 py-3 bg-white/10 border border-gray-400/30 rounded-lg text-white placeholder-gray-200 focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm"
-                  style={{
-                    backgroundColor: "rgba(255, 255, 255, 0.1)",
-                  }}
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Type
-                </label>
-                <select
-                  value={formData.type}
-                  onChange={(e) =>
-                    setFormData({ ...formData, type: e.target.value })
-                  }
-                  className="w-full pl-4 pr-4 py-3 bg-white/10 border border-gray-400/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm"
-                  style={{
-                    backgroundColor: "rgba(255, 255, 255, 0.1)",
-                  }}
-                >
-                  {TEMPLATE_TYPES.map((type) => (
-                    <option
-                      key={type}
-                      value={type}
-                      style={{
-                        backgroundColor: "#1f2937",
-                        color: "#ffffff",
-                      }}
-                    >
-                      {type}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Secteur
-                </label>
-                <select
-                  value={formData.sector}
-                  onChange={(e) =>
-                    setFormData({ ...formData, sector: e.target.value })
-                  }
-                  className="w-full pl-4 pr-4 py-3 bg-white/10 border border-gray-400/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm"
-                  style={{
-                    backgroundColor: "rgba(255, 255, 255, 0.1)",
-                  }}
-                >
-                  {SECTORS.map((sector) => (
-                    <option
-                      key={sector}
-                      value={sector}
-                      style={{
-                        backgroundColor: "#1f2937",
-                        color: "#ffffff",
-                      }}
-                    >
-                      {sector}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Contenu
-                </label>
-                <Textarea
-                  placeholder="Contenu du template..."
-                  value={formData.content}
-                  onChange={(e) =>
-                    setFormData({ ...formData, content: e.target.value })
-                  }
-                  className="w-full pl-4 pr-4 py-3 bg-white/10 border border-gray-400/30 rounded-lg text-white placeholder-gray-200 focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm min-h-[120px]"
-                  rows={5}
-                  style={{
-                    backgroundColor: "rgba(255, 255, 255, 0.1)",
-                  }}
-                />
-              </div>
-
-              <div className="flex space-x-3">
-                <button
-                  onClick={createTemplate}
-                  className="bg-europbots-secondary text-europbots-primary font-bold py-3 px-6 rounded-lg hover:bg-europbots-secondary/90 transition-colors flex items-center space-x-2"
-                >
-                  <Save className="w-5 h-5" />
-                  <span>Créer</span>
-                </button>
+        {/* Modal de Crear/Editar */}
+        {(isCreating || editingId || viewingId) && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-8 max-w-2xl w-full mx-4 overflow-y-auto">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-white">
+                  {isCreating
+                    ? "Créer Nouveau Template"
+                    : editingId
+                    ? "Modifier Template"
+                    : "Voir Template"}
+                </h2>
                 <button
                   onClick={cancelForm}
-                  className="bg-white/10 text-white font-medium py-3 px-4 rounded-lg hover:bg-white/20 transition-colors border border-europbots-secondary/20 flex items-center space-x-2"
+                  className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
                 >
-                  <X className="w-5 h-5" />
-                  <span>Annuler</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal de visualización */}
-        {viewingId && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-gray-800 p-6 rounded-lg max-w-2xl w-full mx-4 border border-gray-700 backdrop-blur-sm">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-white">
-                  Voir Template
-                </h3>
-                <button
-                  onClick={() => setViewingId(null)}
-                  className="bg-gray-600 hover:bg-gray-500 text-white"
-                >
-                  <X className="w-4 h-4" />
+                  <X className="w-4 h-4 text-gray-300" />
                 </button>
               </div>
 
-              {templates.find((t) => t.id === viewingId) && (
-                <div className="text-gray-300">
-                  <p>
-                    <strong className="text-white">Nom:</strong>{" "}
-                    {templates.find((t) => t.id === viewingId)?.name}
-                  </p>
-                  <p>
-                    <strong className="text-white">Secteur:</strong>{" "}
-                    {templates.find((t) => t.id === viewingId)?.sector}
-                  </p>
-                  <p>
-                    <strong className="text-white">Type:</strong>{" "}
-                    {templates.find((t) => t.id === viewingId)?.type}
-                  </p>
-                  <p>
-                    <strong className="text-white">Contenu:</strong>
-                  </p>
-                  <div className="bg-gray-700 p-3 rounded mt-2 text-gray-300">
-                    {templates.find((t) => t.id === viewingId)?.content}
-                  </div>
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (isCreating) createTemplate();
+                  else if (editingId) updateTemplate();
+                }}
+                className="space-y-6"
+              >
+                {/* Nombre */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Nom du Template
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    disabled={!!viewingId}
+                    className="w-full pl-4 pr-4 py-3 bg-white/10 border border-gray-400/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm disabled:opacity-50"
+                    placeholder="Entrez le nom du template..."
+                    style={{
+                      backgroundColor: "rgba(255, 255, 255, 0.1)",
+                    }}
+                  />
                 </div>
-              )}
+
+                {/* Contenido */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Contenu du Message
+                  </label>
+                  <textarea
+                    value={formData.content}
+                    onChange={(e) =>
+                      setFormData({ ...formData, content: e.target.value })
+                    }
+                    disabled={!!viewingId}
+                    rows={6}
+                    className="w-full pl-4 pr-4 py-3 bg-white/10 border border-gray-400/30 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm resize-none disabled:opacity-50"
+                    placeholder="Entrez le contenu du message..."
+                    style={{
+                      backgroundColor: "rgba(255, 255, 255, 0.1)",
+                    }}
+                  />
+                </div>
+
+                {/* Sector */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Secteur
+                  </label>
+                  <select
+                    value={formData.sector}
+                    onChange={(e) =>
+                      setFormData({ ...formData, sector: e.target.value })
+                    }
+                    disabled={!!viewingId}
+                    className="w-full pl-4 pr-4 py-3 bg-white/10 border border-gray-400/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm disabled:opacity-50"
+                    style={{
+                      backgroundColor: "rgba(255, 255, 255, 0.1)",
+                    }}
+                  >
+                    <option value="" disabled style={{ backgroundColor: "#1f2937", color: "#9ca3af" }}>
+                      Sélectionnez un secteur...
+                    </option>
+                    <option value="Technologie" style={{ backgroundColor: "#1f2937", color: "#ffffff" }}>
+                      Technologie
+                    </option>
+                    <option value="Finance" style={{ backgroundColor: "#1f2937", color: "#ffffff" }}>
+                      Finance
+                    </option>
+                    <option value="Santé" style={{ backgroundColor: "#1f2937", color: "#ffffff" }}>
+                      Santé
+                    </option>
+                    <option value="Éducation" style={{ backgroundColor: "#1f2937", color: "#ffffff" }}>
+                      Éducation
+                    </option>
+                    <option value="Commerce" style={{ backgroundColor: "#1f2937", color: "#ffffff" }}>
+                      Commerce
+                    </option>
+                    <option value="Autre" style={{ backgroundColor: "#1f2937", color: "#ffffff" }}>
+                      Autre
+                    </option>
+                  </select>
+                </div>
+
+                {/* Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Gars
+                  </label>
+                  <select
+                    value={formData.type}
+                    onChange={(e) =>
+                      setFormData({ ...formData, type: e.target.value })
+                    }
+                    disabled={!!viewingId}
+                    className="w-full pl-4 pr-4 py-3 bg-white/10 border border-gray-400/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm disabled:opacity-50"
+                    style={{
+                      backgroundColor: "rgba(255, 255, 255, 0.1)",
+                    }}
+                  >
+                    <option value="" disabled style={{ backgroundColor: "#1f2937", color: "#9ca3af" }}>
+                      Sélectionnez un type de template...
+                    </option>
+                    {TEMPLATE_TYPES.map((type) => {
+                      const isTypeUsed = formData.sector ? checkTemplateTypeExists(type, formData.sector) : false;
+                      return (
+                        <option
+                          key={type}
+                          value={type}
+                          disabled={isTypeUsed}
+                          style={{
+                            backgroundColor: "#1f2937",
+                            color: isTypeUsed ? "#6b7280" : "#ffffff",
+                          }}
+                        >
+                          {type} {isTypeUsed ? "(Déjà utilisé pour ce secteur)" : ""}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+
+                {/* Botones */}
+                {!viewingId && (
+                  <div className="flex justify-end space-x-3">
+                    <button
+                      type="button"
+                      onClick={cancelForm}
+                      className="px-4 py-2 bg-gray-500/20 text-gray-300 rounded-lg hover:bg-gray-500/30 transition-colors"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-europbots-secondary text-black font-semibold rounded-lg hover:bg-europbots-secondary/80 transition-colors flex items-center"
+                    >
+                      {isCreating ? (
+                        <>
+                          <Plus className="w-4 h-4 mr-2" />
+                          Créer
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4 mr-2" />
+                          Sauvegarder
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
+              </form>
             </div>
           </div>
         )}
 
         {/* Tabla de Templates */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
+        <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 overflow-hidden w-full">
+          <div className="overflow-x-auto w-full">
+            <table className="w-full min-w-full">
               <thead className="bg-white/5">
                 <tr>
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Template
+                    Modèle
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Secteur
                   </th>
                   <th className="px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
-                    Type
+                    Gars
                   </th>
                   <th className="px-6 py-4 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Actions
@@ -670,7 +429,7 @@ export default function MessagesPage() {
                     </td>
                   </tr>
                 ) : (
-                  filteredTemplates.map((template) => (
+                  currentTemplates.map((template) => (
                     <tr
                       key={template.id}
                       className="hover:bg-white/5 transition-colors"
@@ -698,12 +457,10 @@ export default function MessagesPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            template.type === "visitor"
-                              ? "bg-purple-100 text-purple-800"
-                              : template.type === "auto_connect"
+                            template.type === "LinkedIn Autoconnect"
                               ? "bg-green-100 text-green-800"
-                              : template.type === "messenger"
-                              ? "bg-orange-100 text-orange-800"
+                              : template.type === "LinkedIn Message Sender"
+                              ? "bg-blue-100 text-blue-800"
                               : "bg-gray-100 text-gray-800"
                           }`}
                         >
@@ -739,6 +496,33 @@ export default function MessagesPage() {
             </table>
           </div>
         </div>
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="mt-6 flex justify-center">
+            <div className="flex space-x-2">
+              <button
+                onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Précédent
+              </button>
+              <span className="px-4 py-2 text-white">
+                Page {currentPage} sur {totalPages}
+              </span>
+              <button
+                onClick={() =>
+                  handlePageChange(Math.min(totalPages, currentPage + 1))
+                }
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 bg-white/10 text-white rounded-lg hover:bg-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Suivant
+              </button>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );

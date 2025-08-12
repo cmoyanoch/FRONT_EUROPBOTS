@@ -219,4 +219,21 @@
             transform: translate(0, 0);
         }
     }
+
+}
+
+/* Clase personalizada para backdrop-blur-sm con 34px - FUERA DE LAYERS PARA MAYOR PRIORIDAD */
+.backdrop-blur-sm {
+    --tw-backdrop-blur: blur(34px) !important;
+    -webkit-backdrop-filter: var(--tw-backdrop-blur) !important;
+    backdrop-filter: var(--tw-backdrop-blur) !important;
+}
+
+/* Estilos personalizados para el logo */
+.relative:has(img) {
+    padding-top: 1.2rem !important;
+}
+
+.relative img {
+    height: 3rem !important;
 }

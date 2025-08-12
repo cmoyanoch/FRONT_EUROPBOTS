@@ -3,19 +3,19 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
-  BarChart3,
-  Bell,
-  Key,
-  LayoutDashboard,
-  LogOut,
-  LucideIcon,
-  MessageSquare,
-  Search,
-  Settings,
-  Shield,
-  Target,
-  Users,
-  Zap,
+    BarChart3,
+    Bell,
+    Key,
+    LayoutDashboard,
+    LogOut,
+    LucideIcon,
+    MessageSquare,
+    Search,
+    Settings,
+    Shield,
+    Target,
+    Users,
+    Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -237,11 +237,6 @@ export default function Menu() {
                     <div className="py-2">
                       <div className="px-4 py-3 border-b border-europbots-secondary/20">
                         <div className="flex flex-col space-y-1">
-                          {user.full_name && (
-                            <p className="font-semibold text-sm text-white">
-                              {user.full_name}
-                            </p>
-                          )}
                           <p className="text-sm text-gray-300 truncate">
                             {user.email}
                           </p>
