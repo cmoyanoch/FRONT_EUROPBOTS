@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { Pool } from 'pg'
 
 // Configuración de la base de datos
@@ -28,10 +28,6 @@ const fallbackFilters = {
   ],
   countries: [
     { name: 'France', code: 'fr', description: 'France', order_index: 1 },
-    { name: 'Allemagne', code: 'de', description: 'Allemagne', order_index: 2 },
-    { name: 'Espagne', code: 'es', description: 'Espagne', order_index: 3 },
-    { name: 'Italie', code: 'it', description: 'Italie', order_index: 4 },
-    { name: 'Pays-Bas', code: 'nl', description: 'Pays-Bas', order_index: 5 }
   ],
   companySizes: [
     { name: '1-10 employés', code: '1-10', description: 'Très petite entreprise', order_index: 1 },
@@ -45,7 +41,7 @@ const fallbackFilters = {
 export async function GET() {
   try {
     const client = await pool.connect()
-    
+
     try {
       // Obtener todos los filtros activos usando la función que creamos
       const result = await client.query(`
@@ -109,11 +105,11 @@ export async function GET() {
 
   } catch (error) {
     console.error('Error obteniendo filtros de la base de datos, usando datos de ejemplo:', error)
-    
+
     // Devolver datos de ejemplo cuando la base de datos no esté disponible
     return NextResponse.json({
       success: true,
       ...fallbackFilters
     })
   }
-} 
+}

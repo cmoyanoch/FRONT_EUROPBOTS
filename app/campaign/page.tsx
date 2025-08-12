@@ -41,16 +41,6 @@ const ROLES = [
 ];
 const REGIONS = [
   "France",
-  "Germany",
-  "Spain",
-  "Italy",
-  "Netherlands",
-  "Belgium",
-  "Switzerland",
-  "Austria",
-  "Sweden",
-  "Norway",
-  "Denmark",
 ];
 
 export default function CampaignPage() {
