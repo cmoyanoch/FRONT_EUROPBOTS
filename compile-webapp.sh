@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # =====================================================
-# SCRIPT DE COMPILACIÓN - EUROPBOTS WEBAPP
+# SCRIPT DE COMPILACIÓN - WEBAPP EUROPBOTS
 # =====================================================
-# Este script compila la aplicación Next.js completa
-# Incluye: limpieza, instalación, compilación y verificación
+# Este script compila y reinicia la WebApp de EUROPBOTS
+# Incluye: compilación, reinicio y verificación
 # =====================================================
 
 set -e  # Salir si hay algún error
@@ -33,360 +33,167 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Función para verificar si un comando existe
-command_exists() {
-    command -v "$1" >/dev/null 2>&1
+# Función para limpiar imágenes sin etiqueta al inicio
+cleanup_docker_before() {
+    print_status "🧹 Limpiando imágenes sin etiqueta al inicio..."
+
+    # Verificar si estamos en un entorno Docker
+    if [ -f "../docker-compose.yml" ]; then
+        cd ..
+
+        # Eliminar solo imágenes sin etiqueta (dangling images)
+        local dangling_images=$(docker images -f "dangling=true" -q 2>/dev/null || echo "")
+        if [ ! -z "$dangling_images" ] && [ "$dangling_images" != "" ]; then
+            print_status "Eliminando imágenes sin etiqueta..."
+            echo "$dangling_images" | xargs -r docker rmi 2>/dev/null || print_warning "⚠️ Algunas imágenes no se pudieron eliminar"
+            print_success "✅ Imágenes sin etiqueta eliminadas"
+        else
+            print_status "No hay imágenes sin etiqueta para eliminar"
+        fi
+
+        cd web_app
+    else
+        print_warning "⚠️ No se encontró docker-compose.yml. Omitiendo limpieza de Docker."
+    fi
 }
 
 # Función para verificar requisitos
 check_requirements() {
     print_status "Verificando requisitos del sistema..."
 
-    # Verificar que estemos en el directorio web-app
+    # Verificar que estemos en el directorio correcto
     if [ ! -f "package.json" ]; then
-        print_error "No se encontró package.json. Asegúrate de estar en el directorio web-app."
-        exit 1
-    fi
-
-    # Verificar que exista el docker-compose.yml en el directorio padre
-    if [ ! -f "../docker-compose.yml" ]; then
-        print_error "No se encontró docker-compose.yml en el directorio padre. Asegúrate de estar en web-app/."
+        print_error "No se encontró package.json. Asegúrate de estar en el directorio web_app."
         exit 1
     fi
 
     # Verificar Node.js
-    if ! command_exists node; then
+    if ! command -v node >/dev/null 2>&1; then
         print_error "Node.js no está instalado. Por favor instala Node.js."
         exit 1
     fi
 
     # Verificar npm
-    if ! command_exists npm; then
+    if ! command -v npm >/dev/null 2>&1; then
         print_error "npm no está instalado. Por favor instala npm."
         exit 1
-    fi
-
-    # Verificar Docker
-    if ! command_exists docker; then
-        print_error "Docker no está instalado. Por favor instala Docker."
-        exit 1
-    fi
-
-    # Verificar archivo .env en el directorio padre
-    if [ ! -f "../.env" ]; then
-        print_warning "No se encontró archivo .env en el directorio padre. Creando archivo de ejemplo..."
-        create_env_file
     fi
 
     print_success "Todos los requisitos están cumplidos"
 }
 
-# Función para crear archivo .env de ejemplo
-create_env_file() {
-    cat > ../.env << 'EOF'
-# =====================================================
-# CONFIGURACIÓN DE ENTORNO - EUROPBOTS
-# =====================================================
-
-# Configuración de dominio
-DOMAIN_NAME=localhost
-WEBAPP_SUBDOMAIN=app
-N8N_SUBDOMAIN=n8n
-
-# Configuración de SSL
-SSL_EMAIL=admin@localhost
-
-# Configuración de base de datos
-POSTGRES_DB=europbots
-POSTGRES_USER=europbots
-POSTGRES_PASSWORD=europbots_password
-
-# Configuración de JWT
-JWT_SECRET=your-secret-key-change-in-production
-
-# Configuración de pgAdmin
-PGADMIN_DEFAULT_EMAIL=admin@localhost
-PGADMIN_DEFAULT_PASSWORD=admin123
-
-# Configuración de zona horaria
-GENERIC_TIMEZONE=Europe/Madrid
-
-# =====================================================
-# IMPORTANTE: Cambia estos valores en producción
-# =====================================================
-EOF
-
-    print_success "Archivo .env creado con configuración de ejemplo en el directorio padre"
-    print_warning "IMPORTANTE: Revisa y modifica el archivo .env antes de usar en producción"
-}
-
-# Función para mostrar versiones
-show_versions() {
-    print_status "Versiones del sistema:"
-    echo "   • Node.js: $(node --version)"
-    echo "   • npm: $(npm --version)"
-    echo "   • Docker: $(docker --version)"
-    echo ""
-}
-
-# Función para limpiar caché y archivos temporales
-cleanup_cache() {
-    print_status "Limpiando caché y archivos temporales..."
-
-    # Limpiar caché de Next.js
-    if [ -d ".next" ]; then
-        print_status "Eliminando caché de Next.js..."
-        rm -rf .next
-    fi
-
-    # Limpiar node_modules y package-lock.json solo en limpieza completa
-    if [ "$1" = "full" ]; then
-        print_status "Eliminando node_modules y package-lock.json..."
-        rm -rf node_modules
-        rm -f package-lock.json
-    fi
-
-    print_success "Limpieza completada"
-}
-
 # Función para instalar dependencias
 install_dependencies() {
-    print_status "Instalando dependencias..."
+    print_status "📦 Instalando dependencias..."
 
-    # Verificar si existe package-lock.json
-    if [ -f "package-lock.json" ]; then
-        print_status "Usando npm ci (instalación limpia)..."
-        npm ci --include=dev
+    if npm install; then
+        print_success "✅ Dependencias instaladas exitosamente"
     else
-        print_status "Usando npm install (generando package-lock.json)..."
-        npm install --include=dev
-    fi
-
-    print_success "Dependencias instaladas correctamente"
-}
-
-# Función para verificar TypeScript
-check_typescript() {
-    print_status "Verificando TypeScript..."
-
-    # Ejecutar verificación de tipos
-    if npm run type-check; then
-        print_success "TypeScript sin errores"
-    else
-        print_warning "Hay errores de TypeScript (pueden ser normales en desarrollo)"
+        print_error "❌ Error al instalar dependencias"
+        exit 1
     fi
 }
 
-# Función para compilar Next.js
-build_nextjs() {
-    print_status "Compilando aplicación Next.js..."
+# Función para compilar la aplicación
+build_app() {
+    print_status "🔨 Compilando aplicación Next.js..."
 
-    # Compilar la aplicación
     if npm run build; then
-        print_success "Aplicación Next.js compilada exitosamente"
+        print_success "✅ Aplicación compilada exitosamente"
     else
-        print_error "Error en la compilación de Next.js"
+        print_error "❌ Error en la compilación"
         exit 1
     fi
 }
 
-# Función para limpiar Docker antes de compilar
-cleanup_docker_before() {
-    print_status "🧹 Limpiando Docker antes de compilar..."
-    
-    # Eliminar imágenes sin etiqueta
-    local dangling_images=$(docker images -f "dangling=true" -q)
-    if [ ! -z "$dangling_images" ]; then
-        print_status "Eliminando imágenes sin etiqueta..."
-        docker rmi $dangling_images 2>/dev/null || print_warning "Algunas imágenes no se pudieron eliminar"
-    fi
-    
-    # Limpiar contenedores detenidos
-    local stopped=$(docker ps -a -q -f status=exited)
-    if [ ! -z "$stopped" ]; then
-        docker rm $stopped 2>/dev/null || true
-    fi
-    
-    # Limpiar sistema
-    docker volume prune -f >/dev/null 2>&1 || true
-    docker network prune -f >/dev/null 2>&1 || true
-    
-    print_success "✅ Sistema Docker limpio - listo para compilar"
-}
+# Función para reiniciar el servicio
+restart_service() {
+    print_status "🔄 Reiniciando servicio webapp..."
 
-# Función para limpiar Docker después de compilar
-cleanup_docker_after() {
-    print_status "🧹 Limpieza post-compilación..."
-    
-    # Eliminar imágenes sin etiqueta generadas
-    local dangling_images=$(docker images -f "dangling=true" -q)
-    if [ ! -z "$dangling_images" ]; then
-        docker rmi $dangling_images 2>/dev/null || true
-    fi
-    
-    # Limpiar caché de build
-    docker builder prune -f >/dev/null 2>&1 || true
-    
-    print_success "✅ Limpieza post-compilación completada"
-}
-
-# Función para compilar Docker
-build_docker() {
-    print_status "Compilando contenedores Docker..."
-
-    # Limpiar imágenes Docker antes de compilar
-    cleanup_docker_before
-
-    # Cambiar al directorio padre para ejecutar docker compose
-    cd ..
-
-    # Compilar webapp sin caché
-    print_status "Compilando contenedor webapp..."
-    if docker compose build webapp --no-cache; then
-        print_success "Contenedor webapp compilado exitosamente"
-        
-        # Limpiar imágenes intermedias después del build
-        print_status "Limpiando imágenes intermedias..."
-        docker image prune -f >/dev/null 2>&1 || true
-    else
-        print_error "Error en la compilación de webapp"
-        exit 1
-    fi
-
-    # Compilar otros servicios si es necesario
-    if docker compose config --services | grep -q "phantombuster-api"; then
-        print_status "Compilando contenedor phantombuster-api..."
-        if docker compose build phantombuster-api --no-cache; then
-            print_success "Contenedor phantombuster-api compilado exitosamente"
-            
-            # Limpiar imágenes intermedias después del build
-            print_status "Limpiando imágenes intermedias..."
-            docker image prune -f >/dev/null 2>&1 || true
+    # Verificar si estamos en un entorno Docker
+    if [ -f "../docker-compose.yml" ]; then
+        cd ..
+        if docker compose restart webapp; then
+            print_success "✅ Servicio reiniciado exitosamente"
         else
-            print_warning "Error en la compilación de phantombuster-api (continuando...)"
+            print_error "❌ Error al reiniciar el servicio"
+            exit 1
         fi
-    fi
-
-    # Limpiar imágenes Docker después de compilar
-    cleanup_docker_after
-
-    # Volver al directorio web-app
-    cd web-app
-
-    print_success "Todos los contenedores Docker compilados exitosamente"
-}
-
-# Función para levantar servicios
-start_services() {
-    print_status "Levantando servicios..."
-
-    # Cambiar al directorio padre para ejecutar docker compose
-    cd ..
-
-    # Levantar servicios en segundo plano
-    if docker compose up -d; then
-        print_success "Servicios levantados exitosamente"
+        cd web_app
     else
-        print_error "Error al levantar servicios"
-        exit 1
+        print_warning "⚠️ No se encontró docker-compose.yml. Reinicia manualmente el servicio."
     fi
-
-    # Volver al directorio web-app
-    cd web-app
 }
 
-# Función para verificar servicios
-check_services() {
-    print_status "Verificando estado de los servicios..."
+# Función para verificar el servicio
+check_service() {
+    print_status "🔍 Verificando estado del servicio..."
 
-    # Cambiar al directorio padre para ejecutar docker compose
-    cd ..
-
-    # Esperar un momento para que los servicios se inicien
+    # Esperar a que el servicio se inicie
+    print_status "⏳ Esperando 10 segundos para que el servicio se inicie completamente..."
     sleep 10
 
-    # Mostrar estado de los contenedores
-    echo ""
-    print_status "Estado de los contenedores:"
-    docker compose ps
+    # Verificar si estamos en un entorno Docker
+    if [ -f "../docker-compose.yml" ]; then
+        cd ..
+        echo ""
+        print_status "📊 Estado del contenedor:"
+        docker compose ps webapp
+        cd web_app
+    fi
 
-    # Verificar que los servicios estén respondiendo
+    # Verificar health check
     echo ""
-    print_status "Verificando conectividad de servicios..."
+    print_status "🏥 Verificando health check..."
 
-    # Verificar webapp (puerto 3000)
     if curl -f http://localhost:3000 >/dev/null 2>&1; then
-        print_success "✅ Webapp está respondiendo en http://localhost:3000"
+        print_success "✅ WebApp está respondiendo correctamente"
+
+        # Mostrar información de la respuesta
+        echo ""
+        print_status "📄 Información de la respuesta:"
+        curl -s -I http://localhost:3000 | head -5
     else
-        print_warning "⚠️  Webapp no responde aún (puede estar iniciando)"
+        print_warning "⚠️ WebApp no responde aún (puede estar iniciando)"
     fi
-
-    # Verificar n8n (puerto 5678)
-    if docker compose ps | grep -q "n8n"; then
-        if curl -f http://localhost:5678 >/dev/null 2>&1; then
-            print_success "✅ n8n está respondiendo en http://localhost:5678"
-        else
-            print_warning "⚠️  n8n no responde aún (puede estar iniciando)"
-        fi
-    fi
-
-    # Verificar phantombuster-api (puerto 3001)
-    if docker compose ps | grep -q "phantombuster-api"; then
-        if curl -f http://localhost:3001 >/dev/null 2>&1; then
-            print_success "✅ phantombuster-api está respondiendo en http://localhost:3001"
-        else
-            print_warning "⚠️  phantombuster-api no responde aún (puede estar iniciando)"
-        fi
-    fi
-
-    # Verificar postgres (puerto 5432)
-    if docker compose ps | grep -q "n8n_postgres"; then
-        if docker compose exec -T n8n_postgres pg_isready -U postgres >/dev/null 2>&1; then
-            print_success "✅ PostgreSQL está funcionando"
-        else
-            print_warning "⚠️  PostgreSQL no responde aún (puede estar iniciando)"
-        fi
-    fi
-
-    # Volver al directorio web-app
-    cd web-app   # Cambiado de ../web-app a web-app
 }
 
 # Función para mostrar información final
 show_final_info() {
     echo ""
     echo "====================================================="
-    print_success "🎉 COMPILACIÓN COMPLETADA EXITOSAMENTE"
+    print_success "🎉 COMPILACIÓN WEBAPP EUROPBOTS COMPLETADA"
     echo "====================================================="
     echo ""
     echo "📱 Servicios disponibles:"
-    echo "   • Webapp: http://localhost:3000"
-    echo "   • n8n: http://localhost:5678"
-    echo "   • phantombuster-api: http://localhost:3001"
-    echo "   • Traefik Dashboard: http://localhost:8080"
+    echo "   • WebApp Next.js: http://localhost:3000"
+    echo "   • API Phantombuster: http://localhost:3001"
+    echo "   • n8n Workflows: http://localhost:5678"
+    echo "   • PgAdmin: http://localhost:8080"
     echo ""
     echo "🔧 Comandos útiles:"
-    echo "   • Ver logs: docker compose logs -f"
-    echo "   • Detener: docker compose down"
-    echo "   • Reiniciar: docker compose restart"
-    echo "   • Estado: docker compose ps"
-    echo "   • Limpiar Docker: docker system prune -f"
-    echo "   • Eliminar imágenes sin etiqueta: docker image prune -f"
+    echo "   • Ver logs: docker compose logs webapp -f"
+    echo "   • Reiniciar: docker compose restart webapp"
+    echo "   • Estado: docker compose ps webapp"
+    echo "   • Health check: curl http://localhost:3000"
     echo ""
-    echo "📊 Monitoreo:"
-    echo "   • Logs webapp: docker compose logs webapp -f"
-    echo "   • Logs n8n: docker compose logs n8n -f"
-    echo "   • Logs phantombuster-api: docker compose logs phantombuster-api -f"
-    echo "   • Logs postgres: docker compose logs n8n_postgres -f"
+    echo "🌐 Caractéristiques:"
+    echo "   • Interface en français"
+    echo "   • Design futuriste"
+    echo "   • Responsive design"
+    echo "   • Animations fluides"
     echo ""
-    echo "🛠️  Desarrollo:"
-echo "   • Modo desarrollo: npm run dev"
-echo "   • Verificar tipos: npm run type-check"
-echo "   • Linting: npm run lint"
+    echo "📊 Pages principales:"
+    echo "   • Dashboard: /"
+    echo "   • Leads: /leads"
+    echo "   • Configuration: /config"
+    echo "   • Analytics: /analytics"
+    echo "   • Recherche: /search"
     echo ""
-    echo "🗄️  Base de datos:"
-    echo "   • PostgreSQL: localhost:5432"
-    echo "   • pgAdmin: http://localhost:8080 (si está configurado)"
+    echo "🔒 Authentification:"
+    echo "   • Login: /login"
+    echo "   • Register: /register"
+    echo "   • Mot de passe oublié: /forgot-password"
     echo ""
     echo "====================================================="
 }
@@ -396,29 +203,17 @@ show_help() {
     echo "Uso: $0 [OPCIÓN]"
     echo ""
     echo "Opciones:"
-    echo "  build     - Compilar aplicación (default)"
-    echo "  clean     - Limpiar caché y recompilar"
-    echo "  full      - Limpieza completa y recompilación"
-    echo "  docker    - Solo compilar Docker"
-    echo "  dev       - Modo desarrollo"
-    echo "  help      - Mostrar esta ayuda"
+    echo "  build       - Compilar y reiniciar (default)"
+    echo "  deps        - Solo instalar dependencias"
+    echo "  restart     - Solo reiniciar servicio"
+    echo "  check       - Solo verificar estado"
+    echo "  help        - Mostrar esta ayuda"
     echo ""
     echo "Ejemplos:"
-    echo "  $0         - Compilación normal"
-    echo "  $0 clean   - Limpiar y recompilar"
-    echo "  $0 full    - Limpieza completa"
-    echo "  $0 dev     - Iniciar modo desarrollo"
-}
-
-# Función para modo desarrollo
-dev_mode() {
-    print_status "Iniciando modo desarrollo..."
-
-    print_status "Iniciando servidor de desarrollo..."
-    print_status "La aplicación estará disponible en: http://localhost:3000"
-    print_status "Presiona Ctrl+C para detener"
-
-    npm run dev
+    echo "  $0         - Compilación completa"
+    echo "  $0 deps    - Solo instalar dependencias"
+    echo "  $0 restart - Solo reiniciar"
+    echo "  $0 check   - Solo verificar"
 }
 
 # Función principal
@@ -426,74 +221,54 @@ main() {
     case "${1:-build}" in
         "build")
             echo "====================================================="
-            echo "🚀 COMPILACIÓN EUROPBOTS WEBAPP"
+            echo "🚀 COMPILACIÓN WEBAPP EUROPBOTS"
             echo "====================================================="
             echo ""
 
             check_requirements
-            show_versions
-            cleanup_cache
+            cleanup_docker_before
             install_dependencies
-            check_typescript
-            build_nextjs
-            build_docker
-            start_services
-            check_services
+            build_app
+            restart_service
+            check_service
             show_final_info
 
             print_success "¡Compilación completada exitosamente!"
             ;;
-        "clean")
+        "deps")
             echo "====================================================="
-            echo "🧹 LIMPIEZA Y RECOMPILACIÓN"
+            echo "📦 INSTALACIÓN DE DEPENDENCIAS"
             echo "====================================================="
             echo ""
 
             check_requirements
-            cleanup_cache
             install_dependencies
-            check_typescript
-            build_nextjs
-            build_docker
-            start_services
-            check_services
+            print_success "¡Dependencias instaladas exitosamente!"
+            ;;
+        "restart")
+            echo "====================================================="
+            echo "🔄 REINICIO WEBAPP EUROPBOTS"
+            echo "====================================================="
+            echo ""
+
+            check_requirements
+            restart_service
+            check_service
             show_final_info
 
-            print_success "¡Limpieza y recompilación completadas!"
+            print_success "¡Reinicio completado exitosamente!"
             ;;
-        "full")
+        "check")
             echo "====================================================="
-            echo "🔄 LIMPIEZA COMPLETA Y RECOMPILACIÓN"
+            echo "🔍 VERIFICACIÓN WEBAPP EUROPBOTS"
             echo "====================================================="
             echo ""
 
             check_requirements
-            cleanup_cache full
-            install_dependencies
-            check_typescript
-            build_nextjs
-            build_docker
-            start_services
-            check_services
+            check_service
             show_final_info
 
-            print_success "¡Limpieza completa y recompilación completadas!"
-            ;;
-        "docker")
-            echo "====================================================="
-            echo "🐳 COMPILACIÓN DOCKER"
-            echo "====================================================="
-            echo ""
-
-            check_requirements
-            build_docker
-            start_services
-            check_services
-
-            print_success "¡Compilación Docker completada!"
-            ;;
-        "dev")
-            dev_mode
+            print_success "¡Verificación completada!"
             ;;
         "help"|"-h"|"--help")
             show_help
