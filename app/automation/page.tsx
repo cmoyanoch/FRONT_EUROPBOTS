@@ -1,24 +1,28 @@
 "use client";
 
 import FuturisticBackground from "@/components/futuristic-background";
+import AnimatedCard from "@/components/ui/animated-card";
+import { useToast } from "@/components/ui/toast-provider";
+import { motion } from "framer-motion";
 import {
-  Bot,
-  Edit,
-  MessageSquare,
-  Pause,
-  Play,
-  Plus,
-  Search,
-  Settings,
-  Trash2,
-  TrendingUp,
-  Users,
+    Bot,
+    Edit,
+    MessageSquare,
+    Pause,
+    Play,
+    Plus,
+    Search,
+    Settings,
+    Trash2,
+    TrendingUp,
+    Users,
 } from "lucide-react";
 import { useState } from "react";
 
 export default function AutomationPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("all");
+  const { showSuccess, showError, showWarning, showInfo } = useToast();
 
   const automations = [
     {
@@ -105,26 +109,49 @@ export default function AutomationPage() {
 
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
-        <div className="mb-8">
+        <AnimatedCard className="mb-8" hover={false}>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-white mb-2">
+              <motion.h1
+                className="text-3xl lg:text-4xl font-bold text-white mb-2"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
                 Automatisations
-              </h1>
-              <p className="text-gray-300">
+              </motion.h1>
+              <motion.p
+                className="text-gray-300 text-lg"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
                 Gérez vos robots et automatisations
-              </p>
+              </motion.p>
             </div>
-            <button className="bg-europbots-secondary text-europbots-primary font-bold py-3 px-6 rounded-lg hover:bg-europbots-secondary/90 transition-colors flex items-center space-x-2">
+            <motion.button
+              onClick={() => showInfo("Création d'une nouvelle automatisation")}
+              className="bg-europbots-secondary text-europbots-primary font-bold py-3 px-6 rounded-lg hover:bg-europbots-secondary/90 transition-colors flex items-center space-x-2"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+            >
               <Plus className="w-5 h-5" />
               <span>Nouvelle Automatisation</span>
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </AnimatedCard>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <AnimatedCard className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6" delay={0.4}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-300">
@@ -132,37 +159,49 @@ export default function AutomationPage() {
                 </p>
                 <p className="text-2xl font-bold text-white mt-1">24</p>
               </div>
-              <div className="bg-blue-500/20 p-3 rounded-lg">
+              <motion.div
+                className="bg-blue-500/20 p-3 rounded-lg"
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
                 <Bot className="w-6 h-6 text-blue-400" />
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </AnimatedCard>
 
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
+          <AnimatedCard className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6" delay={0.5}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-300">Actives</p>
                 <p className="text-2xl font-bold text-white mt-1">18</p>
               </div>
-              <div className="bg-green-500/20 p-3 rounded-lg">
+              <motion.div
+                className="bg-green-500/20 p-3 rounded-lg"
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
                 <Play className="w-6 h-6 text-green-400" />
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </AnimatedCard>
 
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
+          <AnimatedCard className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6" delay={0.6}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-300">En Pause</p>
                 <p className="text-2xl font-bold text-white mt-1">4</p>
               </div>
-              <div className="bg-yellow-500/20 p-3 rounded-lg">
+              <motion.div
+                className="bg-yellow-500/20 p-3 rounded-lg"
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
                 <Pause className="w-6 h-6 text-yellow-400" />
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </AnimatedCard>
 
-          <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
+          <AnimatedCard className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6" delay={0.7}>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-300">
@@ -170,52 +209,77 @@ export default function AutomationPage() {
                 </p>
                 <p className="text-2xl font-bold text-white mt-1">89%</p>
               </div>
-              <div className="bg-purple-500/20 p-3 rounded-lg">
+              <motion.div
+                className="bg-purple-500/20 p-3 rounded-lg"
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
                 <TrendingUp className="w-6 h-6 text-purple-400" />
-              </div>
+              </motion.div>
             </div>
-          </div>
-        </div>
+          </AnimatedCard>
+        </motion.div>
 
         {/* Filters and Search */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6 mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
+        <AnimatedCard className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6 mb-8" delay={0.8}>
+          <motion.div
+            className="flex flex-col md:flex-row gap-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9 }}
+          >
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                <input
+                <motion.div
+                  animate={{ scale: searchTerm ? 1.1 : 1 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                </motion.div>
+                <motion.input
                   type="text"
                   placeholder="Rechercher des automatisations..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-white/10 border border-europbots-secondary/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm"
+                  className="w-full pl-10 pr-4 py-3 bg-white/10 border border-europbots-secondary/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm transition-all duration-200"
+                  whileFocus={{ scale: 1.02 }}
                 />
               </div>
             </div>
             <div className="flex gap-2">
-              <select
+              <motion.select
                 value={selectedFilter}
                 onChange={(e) => setSelectedFilter(e.target.value)}
                 className="px-4 py-3 bg-white/10 border border-europbots-secondary/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm"
+                whileFocus={{ scale: 1.02 }}
               >
                 <option value="all">Todos los tipos</option>
                 <option value="social">Social Media</option>
                 <option value="email">Email</option>
                 <option value="ai">AI/ML</option>
                 <option value="data">Data Scraping</option>
-              </select>
+              </motion.select>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </AnimatedCard>
 
         {/* Automations Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAutomations.map((automation) => {
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 1.0 }}
+        >
+          {filteredAutomations.map((automation, index) => {
             const Icon = automation.icon;
             return (
-              <div
+              <motion.div
                 key={automation.id}
                 className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6 hover:bg-white/20 transition-all duration-300 hover:shadow-lg hover:shadow-europbots-secondary/20"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1.1 + index * 0.1 }}
+                whileHover={{ y: -4, scale: 1.02 }}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="bg-europbots-secondary/20 p-3 rounded-lg">
@@ -265,23 +329,38 @@ export default function AutomationPage() {
                   </div>
                   <div className="flex space-x-2">
                     {automation.status === "active" ? (
-                      <button className="p-2 bg-yellow-500/20 rounded-lg hover:bg-yellow-500/30 transition-colors">
+                      <motion.button
+                        onClick={() => showWarning("Automatisation en pause", `${automation.name} a été mis en pause`)}
+                        className="p-2 bg-yellow-500/20 rounded-lg hover:bg-yellow-500/30 transition-colors"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
                         <Pause className="w-4 h-4 text-yellow-400" />
-                      </button>
+                      </motion.button>
                     ) : (
-                      <button className="p-2 bg-green-500/20 rounded-lg hover:bg-green-500/30 transition-colors">
+                      <motion.button
+                        onClick={() => showSuccess("Automatisation activée", `${automation.name} a été activé`)}
+                        className="p-2 bg-green-500/20 rounded-lg hover:bg-green-500/30 transition-colors"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
                         <Play className="w-4 h-4 text-green-400" />
-                      </button>
+                      </motion.button>
                     )}
-                    <button className="p-2 bg-red-500/20 rounded-lg hover:bg-red-500/30 transition-colors">
-                      <Trash2 className="w-4 h-4 text-red-400" />
-                    </button>
+                    <motion.button
+                      onClick={() => showError("Automatisation supprimée", `${automation.name} a été supprimé`)}
+                      className="p-2 bg-red-500/20 rounded-lg hover:bg-red-500/30 transition-colors"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                                              <Trash2 className="text-red-400" />
+                    </motion.button>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </main>
     </div>
   );

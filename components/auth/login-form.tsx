@@ -32,20 +32,20 @@ export function LoginForm() {
       if (!response.ok) {
         setError(data.error || "Erreur de connexion");
       } else {
-        console.log("✅ Connexion réussie, utilisateur:", data.user);
+        // Login successful
 
         // Lógica de redirección basada en el rol del usuario
         let destinationPage = "/dashboard"; // Página por defecto
 
         if (data.user.role === "admin") {
-          console.log("👑 Utilisateur est admin, redirection vers /admin");
+          // User is admin, redirecting to /admin
           destinationPage = "/admin";
         } else {
-          console.log("👤 Utilisateur est normal, redirection vers /campaign");
+          // User is normal, redirecting to /campaign
           destinationPage = "/campaign";
         }
 
-        console.log(`🚀 Redirection vers: ${destinationPage}`);
+        // Redirecting to destination page
         router.push(destinationPage);
         router.refresh();
       }

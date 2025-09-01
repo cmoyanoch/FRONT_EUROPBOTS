@@ -2,6 +2,92 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Clases CSS personalizadas para el logo de Phantombuster */
+@layer components {
+  /* Contenedor relativo que tiene una imagen */
+  .relative:has(img) {
+    padding-top: 0.6rem !important;
+  }
+
+  /* Logo cuando el sistema está online (verde) - bg=22c55e */
+  .phantombuster-logo-online {
+    background: rgb(210 255 0);
+    border-radius: 50%;
+    padding: 2px;
+    height: 2.5rem !important;
+    width: auto !important;
+  }
+
+  /* Logo cuando el sistema está offline (rojo) - bg=ef4444 */
+  .phantombuster-logo-offline {
+    background: rgba(239, 68, 68, 0.2);
+    border-radius: 50%;
+    padding: 2px;
+    height: 2.5rem !important;
+    width: auto !important;
+  }
+
+  /* Logo para alertas/advertencias (amarillo/naranja) - errores de pago - bg=f59e0b */
+  .phantombuster-logo-warning {
+    background: rgb(245 158 11);
+    border-radius: 50%;
+    padding: 2px;
+    height: 2.5rem !important;
+    width: auto !important;
+  }
+
+  /* Logo para errores críticos de API (rojo más intenso) - bg=dc2626 */
+  .phantombuster-logo-error {
+    background: rgba(220, 38, 38, 0.2);
+    border-radius: 50%;
+    padding: 2px;
+    height: 2.5rem !important;
+    width: auto !important;
+  }
+
+  /* Responsive para móviles - reducir tamaño de logos */
+  @media (max-width: 768px) {
+    .phantombuster-logo-online,
+    .phantombuster-logo-offline,
+    .phantombuster-logo-warning,
+    .phantombuster-logo-error {
+      height: 2rem !important;
+      width: 2rem !important;
+      padding: 1px !important;
+      max-width: 2rem !important;
+      min-width: 2rem !important;
+    }
+  }
+
+  /* Responsive para móviles pequeños */
+  @media (max-width: 480px) {
+    .phantombuster-logo-online,
+    .phantombuster-logo-offline,
+    .phantombuster-logo-warning,
+    .phantombuster-logo-error {
+      height: 1.75rem !important;
+      width: 1.75rem !important;
+      padding: 1px !important;
+      max-width: 1.75rem !important;
+      min-width: 1.75rem !important;
+    }
+  }
+
+  /* Responsive para móviles muy pequeños */
+  @media (max-width: 375px) {
+    .phantombuster-logo-online,
+    .phantombuster-logo-offline,
+    .phantombuster-logo-warning,
+    .phantombuster-logo-error {
+      height: 1.5rem !important;
+      width: 1.5rem !important;
+      padding: 1px !important;
+      max-width: 1.5rem !important;
+      min-width: 1.5rem !important;
+    }
+  }
+}
+
 @layer base {
     :root {
         /* Variables CSS para Shadcn UI */
@@ -88,11 +174,36 @@
     }
 
     .europbots-card {
-        @apply bg-europbots-accent/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-europbots-secondary/20;
+        @apply bg-europbots-accent/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-europbots-secondary/20 p-4 sm:p-6 lg:p-8;
     }
 
     .europbots-button {
         @apply bg-europbots-secondary text-europbots-primary font-bold py-2 px-4 rounded-lg hover:bg-europbots-secondary/90 transition-colors duration-200;
+    }
+
+    /* Clases responsive adicionales */
+    .responsive-container {
+        @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+    }
+
+    .responsive-grid {
+        @apply grid gap-4 sm:gap-6 lg:gap-8;
+    }
+
+    .responsive-text-lg {
+        @apply text-base sm:text-lg lg:text-xl;
+    }
+
+    .responsive-text-xl {
+        @apply text-lg sm:text-xl lg:text-2xl;
+    }
+
+    .responsive-text-2xl {
+        @apply text-xl sm:text-2xl lg:text-3xl;
+    }
+
+    .responsive-text-3xl {
+        @apply text-2xl sm:text-3xl lg:text-4xl;
     }
 
     /* Clases adicionales para gradientes */
@@ -229,11 +340,204 @@
     backdrop-filter: var(--tw-backdrop-blur) !important;
 }
 
-/* Estilos personalizados para el logo */
-.relative:has(img) {
-    padding-top: 1.2rem !important;
+/* Estilos para el logo de Axonaut - Círculo dentro de círculo */
+.axonaut-logo-online {
+  filter: brightness(1) saturate(1);
+  transition: all 0.3s ease;
 }
 
-.relative img {
-    height: 3rem !important;
+.axonaut-logo-error {
+  filter: brightness(1.2) saturate(1.5) hue-rotate(30deg);
+  animation: pulse-error 2s infinite;
+}
+
+.axonaut-logo-warning {
+  filter: brightness(1.1) saturate(1.3) hue-rotate(15deg);
+  animation: pulse-warning 2s infinite;
+}
+
+.axonaut-logo-offline {
+  filter: grayscale(1) brightness(0.7);
+  opacity: 0.6;
+}
+
+/* Estilos para el diseño de círculo dentro de círculo */
+.axonaut-circle-outer {
+  @apply flex items-center justify-center rounded-full ring-2 transition-all duration-300;
+  width: 2.2rem;
+  height: 2.2rem;
+}
+
+.axonaut-circle-inner {
+  @apply rounded-full flex items-center justify-center overflow-hidden;
+  width: 1.8rem;
+  height: 1.8rem;
+}
+
+.axonaut-circle-text {
+  @apply text-xs font-bold text-white;
+}
+
+/* Responsive para móviles - Axonaut logos */
+@media (max-width: 768px) {
+  .axonaut-circle-outer {
+    width: 1.8rem !important;
+    height: 1.8rem !important;
+  }
+
+  .axonaut-circle-inner {
+    width: 1.5rem !important;
+    height: 1.5rem !important;
+  }
+}
+
+/* Responsive para móviles pequeños - Axonaut logos */
+@media (max-width: 480px) {
+  .axonaut-circle-outer {
+    width: 1.6rem !important;
+    height: 1.6rem !important;
+  }
+
+  .axonaut-circle-inner {
+    width: 1.3rem !important;
+    height: 1.3rem !important;
+  }
+}
+
+/* Responsive para móviles muy pequeños - Axonaut logos */
+@media (max-width: 375px) {
+  .axonaut-circle-outer {
+    width: 1.4rem !important;
+    height: 1.4rem !important;
+  }
+
+  .axonaut-circle-inner {
+    width: 1.1rem !important;
+    height: 1.1rem !important;
+  }
+}
+
+/* Responsive para tarjetas de campaña en móviles */
+@media (max-width: 768px) {
+  /* Mejorar espaciado en móviles */
+  .campaign-card {
+    padding: 1rem !important;
+  }
+
+  /* Ajustar tamaños de texto en móviles */
+  .campaign-title {
+    font-size: 1rem !important;
+    line-height: 1.4 !important;
+  }
+
+  .campaign-description {
+    font-size: 0.875rem !important;
+  }
+
+  /* Mejorar layout de detalles en móviles */
+  .campaign-details {
+    gap: 0.75rem !important;
+  }
+
+  /* Ajustar iconos en móviles */
+  .campaign-icon {
+    width: 2rem !important;
+    height: 2rem !important;
+  }
+
+  /* Mejorar botones en móviles */
+  .campaign-button {
+    min-height: 2.5rem !important;
+    padding: 0.5rem 0.75rem !important;
+  }
+}
+
+/* Responsive para móviles pequeños */
+@media (max-width: 480px) {
+  .campaign-card {
+    padding: 0.75rem !important;
+  }
+
+  .campaign-title {
+    font-size: 0.875rem !important;
+  }
+
+  .campaign-description {
+    font-size: 0.75rem !important;
+  }
+
+  .campaign-icon {
+    width: 1.75rem !important;
+    height: 1.75rem !important;
+  }
+
+  .campaign-button {
+    min-height: 2.25rem !important;
+    padding: 0.375rem 0.5rem !important;
+  }
+}
+
+/* Estados de color para el anillo exterior y fondo */
+.axonaut-ring-online {
+  @apply ring-green-400;
+  background-color: rgb(74 222 128);
+}
+
+.axonaut-ring-error {
+  @apply ring-orange-400;
+  background-color: rgb(251 146 60);
+}
+
+.axonaut-ring-warning {
+  @apply ring-yellow-400;
+  background-color: rgb(250 204 21);
+}
+
+.axonaut-ring-offline {
+  @apply ring-red-400;
+  background-color: rgb(248 113 113);
+}
+
+/* Estilos para la imagen circular */
+.axonaut-logo-image {
+  @apply w-full h-full object-cover rounded-full;
+}
+
+@keyframes pulse-error {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes pulse-warning {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+/* Custom utility classes */
+.w-13 {
+  width: 4rem;
+}
+
+.h-13 {
+  height: 4rem;
+}
+
+/* Custom grid columns */
+.sm\:grid-cols-5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+/* Custom text styles for process stats */
+.process-stat-title {
+  font-size: 0.8rem;
+  line-height: 1.5rem;
+}
+
+/* Custom hover styles for accent-foreground and accent */
+.hover\:text-accent-foreground:hover {
+  color: #f3f3f3 !important;
+}
+
+.hover\:bg-accent:hover {
+  background-color: hsl(210deg 40% 96% / 4%) !important;
 }

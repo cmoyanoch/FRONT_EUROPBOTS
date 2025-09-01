@@ -1,18 +1,21 @@
 "use client";
 
 import FuturisticBackground from "@/components/futuristic-background";
+import { motion, AnimatePresence } from "framer-motion";
+import AnimatedCard from "@/components/ui/animated-card";
+import { useToast } from "@/components/ui/toast-provider";
 import {
-  Briefcase,
-  Building,
-  CheckCircle,
-  Filter,
-  Globe,
-  MapPin,
-  Rocket,
-  Search,
-  Target,
-  Users,
-  Zap,
+    Briefcase,
+    Building,
+    CheckCircle,
+    Filter,
+    Globe,
+    MapPin,
+    Rocket,
+    Search,
+    Target,
+    Users,
+    Zap,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -50,6 +53,7 @@ export default function SearchPage() {
   const [filters, setFilters] = useState<Filters | null>(null);
   const [isLoadingFilters, setIsLoadingFilters] = useState(true);
   const router = useRouter();
+  const { showSuccess, showError, showWarning, showInfo } = useToast();
 
   useEffect(() => {
     const getUser = async () => {
@@ -128,7 +132,7 @@ export default function SearchPage() {
       !selectedCountries.length &&
       !selectedSizes.length
     ) {
-      setError("Veuillez sélectionner au moins un critère de recherche");
+      showWarning("Veuillez sélectionner au moins un critère de recherche");
       return;
     }
 
@@ -160,11 +164,16 @@ export default function SearchPage() {
 
       if (response.ok) {
         setSearchResult(data);
+        showSuccess(`${data.totalResults || 0} prospects trouvés!`);
       } else {
-        setError(data.error || "Erreur lors de la recherche");
+        const errorMsg = data.error || "Erreur lors de la recherche";
+        setError(errorMsg);
+        showError(errorMsg);
       }
     } catch (error) {
-      setError("Erreur de connexion");
+      const errorMsg = "Erreur de connexion";
+      setError(errorMsg);
+      showError(errorMsg);
     } finally {
       setIsSearching(false);
     }
@@ -191,45 +200,84 @@ export default function SearchPage() {
 
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">
+        <AnimatedCard className="mb-8" hover={false}>
+          <motion.h1 
+            className="text-3xl lg:text-4xl font-bold text-white mb-2"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
             Recherche Avancée
-          </h1>
-          <p className="text-gray-300">
+          </motion.h1>
+          <motion.p 
+            className="text-gray-300 text-lg"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
             Trouvez des prospects qualifiés avec nos filtres intelligents
-          </p>
-        </div>
+          </motion.p>
+        </AnimatedCard>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Filtros */}
           <div className="lg:col-span-1">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6 sticky top-24">
+            <AnimatedCard className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6 sticky top-24" delay={0.2}>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold text-white flex items-center space-x-2">
                   <Filter className="w-5 h-5 text-europbots-secondary" />
                   <span>Filtres</span>
                 </h2>
-                {hasActiveFilters && (
-                  <button
-                    onClick={clearFilters}
-                    className="text-sm text-europbots-secondary hover:text-europbots-secondary/80 transition-colors"
-                  >
-                    Effacer
-                  </button>
-                )}
+                <AnimatePresence>
+                  {hasActiveFilters && (
+                    <motion.button
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      onClick={clearFilters}
+                      className="text-sm text-europbots-secondary hover:text-europbots-secondary/80 transition-colors"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      Effacer
+                    </motion.button>
+                  )}
+                </AnimatePresence>
               </div>
 
               {isLoadingFilters ? (
-                <div className="text-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-europbots-secondary mx-auto"></div>
-                  <p className="text-gray-300 mt-2">
+                <motion.div 
+                  className="text-center py-8"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <motion.div 
+                    className="h-8 w-8 border-b-2 border-europbots-secondary mx-auto rounded-full"
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                  />
+                  <motion.p 
+                    className="text-gray-300 mt-2"
+                    animate={{ opacity: [0.5, 1, 0.5] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                  >
                     Chargement des filtres...
-                  </p>
-                </div>
+                  </motion.p>
+                </motion.div>
               ) : filters ? (
-                <div className="space-y-6">
+                <motion.div 
+                  className="space-y-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
                   {/* Secteurs */}
-                  <div>
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 }}
+                  >
                     <div className="flex items-center space-x-2 mb-3">
                       <Building className="w-4 h-4 text-europbots-secondary" />
                       <label className="text-sm font-medium text-white">
@@ -258,10 +306,14 @@ export default function SearchPage() {
                         </div>
                       ))}
                     </div>
-                  </div>
+                  </motion.div>
 
                   {/* Rôles */}
-                  <div>
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 }}
+                  >
                     <div className="flex items-center space-x-2 mb-3">
                       <Briefcase className="w-4 h-4 text-europbots-secondary" />
                       <label className="text-sm font-medium text-white">
@@ -290,21 +342,25 @@ export default function SearchPage() {
                         </div>
                       ))}
                     </div>
-                  </div>
+                  </motion.div>
 
                   {/* Países */}
-                  <div>
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5 }}
+                  >
                     <div className="flex items-center space-x-2 mb-3">
                       <MapPin className="w-4 h-4 text-europbots-secondary" />
                       <label className="text-sm font-medium text-white">
                         Région Européenne
                       </label>
                     </div>
-                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                    <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
                       {filters.countries.map((country) => (
                         <div
                           key={country.code}
-                          className="flex items-center space-x-3"
+                          className="flex items-center space-x-2"
                         >
                           <input
                             type="checkbox"
@@ -315,17 +371,21 @@ export default function SearchPage() {
                           />
                           <label
                             htmlFor={country.code}
-                            className="text-sm text-gray-300 cursor-pointer hover:text-white transition-colors"
+                            className="text-xs text-gray-300 cursor-pointer hover:text-white transition-colors truncate"
                           >
                             {country.name}
                           </label>
                         </div>
                       ))}
                     </div>
-                  </div>
+                  </motion.div>
 
                   {/* Tamaño de empresa */}
-                  <div>
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.6 }}
+                  >
                     <div className="flex items-center space-x-2 mb-3">
                       <Users className="w-4 h-4 text-europbots-secondary" />
                       <label className="text-sm font-medium text-white">
@@ -354,24 +414,38 @@ export default function SearchPage() {
                         </div>
                       ))}
                     </div>
-                  </div>
-                </div>
+                  </motion.div>
+                </motion.div>
               ) : (
-                <div className="text-center py-8">
+                <motion.div 
+                  className="text-center py-8"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                >
                   <p className="text-gray-300">
                     Erreur lors du chargement des filtres
                   </p>
-                </div>
+                </motion.div>
               )}
 
-              <button
+              <motion.button
                 onClick={handleSearch}
                 disabled={isSearching || !hasActiveFilters}
                 className="w-full mt-6 bg-europbots-secondary text-europbots-primary font-bold py-3 px-4 rounded-lg hover:bg-europbots-secondary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                whileHover={{ scale: hasActiveFilters && !isSearching ? 1.02 : 1 }}
+                whileTap={{ scale: hasActiveFilters && !isSearching ? 0.98 : 1 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7 }}
               >
                 {isSearching ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-europbots-primary"></div>
+                    <motion.div 
+                      className="h-4 w-4 border-b-2 border-europbots-primary rounded-full"
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    />
                     <span>Recherche en cours...</span>
                   </>
                 ) : (
@@ -380,21 +454,36 @@ export default function SearchPage() {
                     <span>Lancer la Recherche</span>
                   </>
                 )}
-              </button>
-            </div>
+              </motion.button>
+            </AnimatedCard>
           </div>
 
           {/* Resultados */}
-          <div className="lg:col-span-3">
-            {error && (
-              <div className="bg-red-500/20 border border-red-500/30 text-red-300 px-4 py-3 rounded-lg mb-6">
-                {error}
-              </div>
-            )}
+          <div className="lg:col-span-2">
+            <AnimatePresence>
+              {error && (
+                <motion.div 
+                  className="bg-red-500/20 border border-red-500/30 text-red-300 px-4 py-3 rounded-lg mb-6"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {error}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-            {searchResult ? (
-              <div className="space-y-6">
-                <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
+            <AnimatePresence>
+              {searchResult ? (
+                <motion.div 
+                  className="space-y-6"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  transition={{ duration: 0.5 }}
+                >
+                  <AnimatedCard className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6" delay={0.3}>
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-lg font-semibold text-white">
                       Résultats de la Recherche
@@ -408,12 +497,21 @@ export default function SearchPage() {
                   </div>
 
                   {searchResult.results && searchResult.results.length > 0 ? (
-                    <div className="space-y-4">
+                    <motion.div 
+                      className="space-y-4"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                    >
                       {searchResult.results.map(
                         (result: any, index: number) => (
-                          <div
+                          <motion.div
                             key={index}
-                            className="bg-white/5 rounded-lg p-4 border border-europbots-secondary/10"
+                            className="bg-white/5 rounded-lg p-4 border border-europbots-secondary/10 hover:bg-white/10 transition-all duration-200"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                            whileHover={{ x: 4 }}
                           >
                             <div className="flex items-center justify-between">
                               <div>
@@ -429,57 +527,115 @@ export default function SearchPage() {
                                 </p>
                               </div>
                               <div className="flex items-center space-x-2">
-                                <button className="bg-europbots-secondary text-europbots-primary px-3 py-1 rounded text-sm font-medium hover:bg-europbots-secondary/90 transition-colors">
+                                <motion.button 
+                                  className="bg-europbots-secondary text-europbots-primary px-3 py-1 rounded text-sm font-medium hover:bg-europbots-secondary/90 transition-colors"
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
+                                >
                                   Connecter
-                                </button>
-                                <button className="bg-white/10 text-white px-3 py-1 rounded text-sm font-medium hover:bg-white/20 transition-colors">
+                                </motion.button>
+                                <motion.button 
+                                  className="bg-white/10 text-white px-3 py-1 rounded text-sm font-medium hover:bg-white/20 transition-colors"
+                                  whileHover={{ scale: 1.05 }}
+                                  whileTap={{ scale: 0.95 }}
+                                >
                                   Voir Profil
-                                </button>
+                                </motion.button>
                               </div>
                             </div>
-                          </div>
+                          </motion.div>
                         )
                       )}
-                    </div>
+                    </motion.div>
                   ) : (
-                    <div className="text-center py-8">
-                      <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                      <p className="text-gray-300">
+                    <motion.div 
+                      className="text-center py-8"
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <motion.div
+                        animate={{ rotate: [0, 10, -10, 0] }}
+                        transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                      >
+                        <Search className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                      </motion.div>
+                      <motion.p 
+                        className="text-gray-300"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                      >
                         Aucun résultat trouvé avec ces critères
-                      </p>
-                      <p className="text-sm text-gray-400 mt-2">
+                      </motion.p>
+                      <motion.p 
+                        className="text-sm text-gray-400 mt-2"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.4 }}
+                      >
                         Essayez d'ajuster vos filtres
-                      </p>
-                    </div>
+                      </motion.p>
+                    </motion.div>
                   )}
-                </div>
-              </div>
-            ) : (
-              <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-8 text-center">
-                <Rocket className="w-16 h-16 text-europbots-secondary mx-auto mb-4" />
-                <h3 className="text-xl font-semibold text-white mb-2">
-                  Prêt à Découvrir ?
-                </h3>
-                <p className="text-gray-300 mb-6">
-                  Sélectionnez vos critères de recherche pour trouver des
-                  prospects qualifiés
-                </p>
-                <div className="flex items-center justify-center space-x-4 text-sm text-gray-400">
-                  <div className="flex items-center space-x-2">
-                    <CheckCircle className="w-4 h-4 text-green-400" />
-                    <span>Filtres intelligents</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Globe className="w-4 h-4 text-blue-400" />
-                    <span>Base de données européenne</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Zap className="w-4 h-4 text-yellow-400" />
-                    <span>Résultats en temps réel</span>
-                  </div>
-                </div>
-              </div>
-            )}
+                  </AnimatedCard>
+                </motion.div>
+              ) : (
+                <AnimatedCard className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-8 text-center" delay={0.4}>
+                  <motion.div
+                    animate={{ y: [0, -10, 0] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                  >
+                    <Rocket className="w-16 h-16 text-europbots-secondary mx-auto mb-4" />
+                  </motion.div>
+                  <motion.h3 
+                    className="text-xl font-semibold text-white mb-2"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    Prêt à Découvrir ?
+                  </motion.h3>
+                  <motion.p 
+                    className="text-gray-300 mb-6"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    Sélectionnez vos critères de recherche pour trouver des
+                    prospects qualifiés
+                  </motion.p>
+                  <motion.div 
+                    className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-4 text-sm text-gray-400"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4, staggerChildren: 0.1 }}
+                  >
+                    <motion.div 
+                      className="flex items-center space-x-2"
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      <CheckCircle className="w-4 h-4 text-green-400" />
+                      <span>Filtres intelligents</span>
+                    </motion.div>
+                    <motion.div 
+                      className="flex items-center space-x-2"
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      <Globe className="w-4 h-4 text-blue-400" />
+                      <span>Base de données européenne</span>
+                    </motion.div>
+                    <motion.div 
+                      className="flex items-center space-x-2"
+                      whileHover={{ scale: 1.05 }}
+                    >
+                      <Zap className="w-4 h-4 text-yellow-400" />
+                      <span>Résultats en temps réel</span>
+                    </motion.div>
+                  </motion.div>
+                </AnimatedCard>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </main>

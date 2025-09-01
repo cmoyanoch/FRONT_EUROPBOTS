@@ -1,32 +1,41 @@
-import { NextResponse } from 'next/server'
 import pool from '@/lib/database'
+import { NextResponse } from 'next/server'
 
 export async function GET() {
   try {
-    const campaignId = 'CAMP_TECHNO_CEO_W30_060034'
-    
+    // Query para obtener el conteo de leads por cada campaña
     const query = `
-      SELECT COUNT(*) as leads_count 
-      FROM webapp.leads 
-      WHERE campaigns = $1
+      SELECT
+        campaigns as campaign_id,
+        COUNT(*) as leads_count
+      FROM webapp.leads
+      WHERE campaigns IS NOT NULL
+      GROUP BY campaigns
+      ORDER BY campaigns
     `
 
-    const result = await pool.query(query, [campaignId])
-    const leadsCount = parseInt(result.rows[0]?.leads_count || '0')
+    const result = await pool.query(query)
+
+    // Convertir el resultado a un objeto con campaign_id como clave
+    const leadsCounts: { [key: string]: number } = {}
+    result.rows.forEach(row => {
+      leadsCounts[row.campaign_id] = parseInt(row.leads_count)
+    })
 
     return NextResponse.json({
       success: true,
-      campaign_id: campaignId,
-      leads_count: leadsCount
+      leads_counts: leadsCounts,
+      total_campaigns: result.rows.length
     })
 
   } catch (error) {
+    console.error('❌ Error al obtener conteos de leads:', error)
     return NextResponse.json(
-      { 
-        error: 'Error al obtener conteo de leads',
+      {
+        error: 'Error al obtener conteos de leads',
         details: error instanceof Error ? error.message : 'Error desconocido'
       },
       { status: 500 }
     )
   }
-} 
+}

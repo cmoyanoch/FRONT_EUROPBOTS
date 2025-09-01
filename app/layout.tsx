@@ -1,3 +1,6 @@
+import { LeadAlerts } from "@/components/lead-alerts";
+import { ToastProvider } from "@/components/ui/toast-provider";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 import { AuthService } from "@/lib/auth";
 import type { Metadata } from "next";
 import { Montserrat, Red_Hat_Display, Syncopate } from "next/font/google";
@@ -89,10 +92,21 @@ export default async function RootLayout({
         <meta httpEquiv="Expires" content="0" />
       </head>
       <body
-        className={`${redHatDisplay.className} bg-europbots-primary text-europbots-text antialiased`}
+        className={`${redHatDisplay.className} bg-europbots-primary text-europbots-text antialiased min-h-screen`}
       >
-        <Menu />
-        {children}
+        <ToastProvider>
+          <NotificationProvider>
+            <div className="flex flex-col min-h-screen">
+              <Menu />
+              <main className="flex-1">
+                {children}
+              </main>
+              <LeadAlerts />
+            </div>
+          </NotificationProvider>
+        </ToastProvider>
+        {/* Flowbite Script para Accordion */}
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.2.1/flowbite.min.js"></script>
       </body>
     </html>
   );

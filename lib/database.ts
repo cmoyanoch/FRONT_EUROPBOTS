@@ -131,6 +131,7 @@ export async function getLeads(): Promise<Lead[]> {
 export async function getLeadsWithFilters(
   searchTerm?: string,
   status?: string,
+  process?: string,
   limit: number = 50,
   offset: number = 0
 ): Promise<{ leads: Lead[]; total: number }> {
@@ -158,6 +159,13 @@ export async function getLeadsWithFilters(
       paramIndex++;
     }
 
+    // Filtro de proceso
+    if (process && process !== "all") {
+      whereConditions.push(`process = $${paramIndex}`);
+      params.push(process);
+      paramIndex++;
+    }
+
     const whereClause =
       whereConditions.length > 0
         ? `WHERE ${whereConditions.join(" AND ")}`
@@ -169,11 +177,11 @@ export async function getLeadsWithFilters(
       ${whereClause}
       ORDER BY
         CASE
-          WHEN process = 'PROFILE VISITOR' THEN 1
-          WHEN process = 'AUTOCONNECT' THEN 2
-          WHEN process = 'MESSAGE SENDER' THEN 3
-          WHEN process = 'ENRICHED' THEN 4
-          WHEN process = 'EXTRACTED' THEN 5
+          WHEN process = 'AUTOCONNECT' THEN 1
+          WHEN process = 'PROFILE VISITOR' THEN 2
+          WHEN process = 'ENRICHED' THEN 3
+          WHEN process = 'EXTRACTED' THEN 4
+          WHEN process = 'MESSAGE SENDER' THEN 5
           ELSE 6
         END,
         created_at DESC

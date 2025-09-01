@@ -1,15 +1,17 @@
 "use client";
 
 import FuturisticBackground from "@/components/futuristic-background";
-import { ToastNotification, useNotification } from "@/components/ui/notification";
+import AnimatedCard from "@/components/ui/animated-card";
+import { useToast } from "@/components/ui/toast-provider";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  Edit,
-  Eye,
-  FileText,
-  Plus,
-  Save,
-  Trash2,
-  X
+    Edit,
+    Eye,
+    FileText,
+    Plus,
+    Save,
+    Trash2,
+    X
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -52,7 +54,7 @@ export default function MessagesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Sistema de notificaciones
-  const { notification, showNotification, hideNotification } = useNotification();
+  const { showSuccess, showError, showWarning, showInfo } = useToast();
 
   // Formulario
   const [formData, setFormData] = useState({
@@ -117,7 +119,7 @@ export default function MessagesPage() {
       }
     } catch (error) {
       console.error("Error loading sectors:", error);
-      showNotification("Erreur lors du chargement des secteurs", "error");
+      showError("Erreur de chargement", "Erreur lors du chargement des secteurs");
     }
   };
 
@@ -132,7 +134,7 @@ export default function MessagesPage() {
       }
     } catch (error) {
       console.error("Error loading templates:", error);
-      showNotification("Erreur lors du chargement des templates", "error");
+      showError("Erreur de chargement", "Erreur lors du chargement des templates");
     } finally {
       setLoading(false);
     }
@@ -146,7 +148,7 @@ export default function MessagesPage() {
   // Crear template
   const createTemplate = async () => {
     if (!validateForm()) {
-      showNotification("Veuillez corriger les erreurs dans le formulaire", "warning");
+      showWarning("Erreurs de validation", "Veuillez corriger les erreurs dans le formulaire");
       return;
     }
 
@@ -162,13 +164,13 @@ export default function MessagesPage() {
         await loadTemplates();
         resetForm();
         setIsCreating(false);
-        showNotification("Template créé avec succès", "success");
+        showSuccess("Template créé", "Template créé avec succès");
       } else {
-        showNotification(data.message || "Erreur lors de la création du template", "error");
+        showError("Erreur de création", data.message || "Erreur lors de la création du template");
       }
     } catch (error) {
       console.error("Error creating template:", error);
-      showNotification("Erreur lors de la création du template", "error");
+      showError("Erreur de connexion", "Erreur lors de la création du template");
     } finally {
       setIsSubmitting(false);
     }
@@ -179,7 +181,7 @@ export default function MessagesPage() {
     if (!editingId) return;
 
     if (!validateForm()) {
-      showNotification("Veuillez corriger les erreurs dans le formulaire", "warning");
+      showWarning("Erreurs de validation", "Veuillez corriger les erreurs dans le formulaire");
       return;
     }
 
@@ -195,13 +197,13 @@ export default function MessagesPage() {
         await loadTemplates();
         resetForm();
         setEditingId(null);
-        showNotification("Template mis à jour avec succès", "success");
+        showSuccess("Template mis à jour", "Template mis à jour avec succès");
       } else {
-        showNotification(data.message || "Erreur lors de la mise à jour du template", "error");
+        showError("Erreur de mise à jour", data.message || "Erreur lors de la mise à jour du template");
       }
     } catch (error) {
       console.error("Error updating template:", error);
-      showNotification("Erreur lors de la mise à jour du template", "error");
+      showError("Erreur de connexion", "Erreur lors de la mise à jour du template");
     } finally {
       setIsSubmitting(false);
     }
@@ -217,13 +219,13 @@ export default function MessagesPage() {
       const data = await response.json();
       if (data.success) {
         await loadTemplates();
-        showNotification("Template supprimé avec succès", "success");
+        showSuccess("Template supprimé", "Template supprimé avec succès");
       } else {
-        showNotification(data.message || "Erreur lors de la suppression du template", "error");
+        showError("Erreur de suppression", data.message || "Erreur lors de la suppression du template");
       }
     } catch (error) {
       console.error("Error deleting template:", error);
-      showNotification("Erreur lors de la suppression du template", "error");
+      showError("Erreur de connexion", "Erreur lors de la suppression du template");
     }
   };
 
@@ -294,56 +296,92 @@ export default function MessagesPage() {
     <div className="min-h-screen relative">
       <FuturisticBackground />
 
-      {/* Componente de notificación */}
-      <ToastNotification
-        message={notification.message}
-        type={notification.type}
-        isVisible={notification.isVisible}
-        onClose={hideNotification}
-      />
+      {/* Toast notifications are handled globally via ToastProvider */}
 
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header con título y botón */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-white mb-2">
-              Modèles de messages
-            </h1>
-                                      <p className="text-gray-300">
-              Gérez vos modèles de messages pour les campagnes LinkedIn
-            </p>
-            <p className="text-sm text-gray-400 mt-1">
-              Vous pouvez créer 2 templates par secteur (1 LinkedIn Autoconnect + 1 LinkedIn Message Sender par secteur).
-            </p>
+        <AnimatedCard className="mb-8" hover={false}>
+          <div className="flex items-center justify-between">
+            <div>
+              <motion.h1
+                className="text-3xl lg:text-4xl font-bold text-white mb-2"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                Modèles de messages
+              </motion.h1>
+              <motion.p
+                className="text-gray-300 text-lg"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
+                Gérez vos modèles de messages pour les campagnes LinkedIn
+              </motion.p>
+              <motion.p
+                className="text-sm text-gray-400 mt-1"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                Vous pouvez créer 2 templates par secteur (1 LinkedIn Autoconnect + 1 LinkedIn Message Sender par secteur).
+              </motion.p>
+            </div>
+            <motion.button
+              onClick={() => setIsCreating(true)}
+              className="font-bold py-3 px-6 rounded-lg transition-colors flex items-center space-x-2 bg-europbots-secondary text-europbots-primary hover:bg-europbots-secondary/90"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Plus className="w-5 h-5" />
+              <span>Nouveau Template</span>
+            </motion.button>
           </div>
-                    <button
-            onClick={() => setIsCreating(true)}
-            className="font-bold py-3 px-6 rounded-lg transition-colors flex items-center space-x-2 bg-europbots-secondary text-europbots-primary hover:bg-europbots-secondary/90"
-          >
-            <Plus className="w-5 h-5" />
-            <span>Nouveau Template</span>
-          </button>
-        </div>
+        </AnimatedCard>
 
         {/* Modal de Crear/Editar */}
-        {(isCreating || editingId || viewingId) && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-            <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-8 max-w-2xl w-full mx-4 overflow-y-auto">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-white">
-                  {isCreating
-                    ? "Créer Nouveau Template"
-                    : editingId
-                    ? "Modifier Template"
-                    : "Voir Template"}
-                </h2>
-                <button
-                  onClick={cancelForm}
-                  className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
+        <AnimatePresence>
+          {(isCreating || editingId || viewingId) && (
+            <motion.div
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.div
+                className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-8 max-w-2xl w-full mx-4 overflow-y-auto max-h-[90vh]"
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                transition={{ duration: 0.3, type: "spring", stiffness: 300 }}
+              >
+                <motion.div
+                  className="flex items-center justify-between mb-6"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
                 >
-                  <X className="w-4 h-4 text-gray-300" />
-                </button>
-              </div>
+                  <h2 className="text-xl font-semibold text-white">
+                    {isCreating
+                      ? "Créer Nouveau Template"
+                      : editingId
+                      ? "Modifier Template"
+                      : "Voir Template"}
+                  </h2>
+                  <motion.button
+                    onClick={cancelForm}
+                    className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
+                    whileHover={{ scale: 1.1, rotate: 90 }}
+                    whileTap={{ scale: 0.9 }}
+                  >
+                    <X className="w-4 h-4 text-gray-300" />
+                  </motion.button>
+                </motion.div>
 
               <form
                 onSubmit={(e) => {
@@ -354,13 +392,13 @@ export default function MessagesPage() {
                 className="space-y-6"
               >
                 {/* Nombre */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                     Nom du Template *
-                  </label>
+                </label>
                   <input
-                    type="text"
-                    value={formData.name}
+                  type="text"
+                  value={formData.name}
                     onChange={(e) => {
                       setFormData({ ...formData, name: e.target.value });
                       if (errors.name) {
@@ -372,21 +410,21 @@ export default function MessagesPage() {
                       errors.name ? 'border-red-500' : 'border-gray-400/30'
                     }`}
                     placeholder="Entrez le nom du template..."
-                    style={{
-                      backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    }}
-                  />
+                  style={{
+                    backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  }}
+                />
                   {errors.name && (
                     <p className="mt-1 text-sm text-red-400">{errors.name}</p>
                   )}
-                </div>
+              </div>
 
                 {/* Sector */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                     Secteur *
-                  </label>
-                  <select
+                </label>
+                <select
                     value={formData.sector}
                     onChange={(e) => {
                       setFormData({ ...formData, sector: e.target.value, type: "" });
@@ -401,34 +439,34 @@ export default function MessagesPage() {
                     className={`w-full pl-4 pr-4 py-3 bg-white/10 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm disabled:opacity-50 ${
                       errors.sector ? 'border-red-500' : 'border-gray-400/30'
                     }`}
-                    style={{
-                      backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    }}
-                  >
+                  style={{
+                    backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  }}
+                >
                     <option value="" disabled style={{ backgroundColor: "#1f2937", color: "#9ca3af" }}>
                       Sélectionnez un secteur...
                     </option>
                     {sectors.map((sector) => (
-                      <option
+                    <option
                         key={sector.code}
                         value={sector.name}
                         style={{ backgroundColor: "#1f2937", color: "#ffffff" }}
-                      >
+                    >
                         {sector.name}
-                      </option>
-                    ))}
-                  </select>
+                    </option>
+                  ))}
+                </select>
                   {errors.sector && (
                     <p className="mt-1 text-sm text-red-400">{errors.sector}</p>
                   )}
-                </div>
+              </div>
 
                 {/* Type */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                     Type *
-                  </label>
-                  <select
+                </label>
+                <select
                     value={formData.type}
                     onChange={(e) => {
                       setFormData({ ...formData, type: e.target.value });
@@ -440,42 +478,42 @@ export default function MessagesPage() {
                     className={`w-full pl-4 pr-4 py-3 bg-white/10 border rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-europbots-secondary focus:border-transparent backdrop-blur-sm disabled:opacity-50 ${
                       errors.type ? 'border-red-500' : 'border-gray-400/30'
                     }`}
-                    style={{
-                      backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    }}
-                  >
+                  style={{
+                    backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  }}
+                >
                     <option value="" disabled style={{ backgroundColor: "#1f2937", color: "#9ca3af" }}>
                       {!formData.sector ? "Sélectionnez d'abord un secteur..." : "Sélectionnez un type de template..."}
                     </option>
                     {TEMPLATE_TYPES.map((type) => {
                       const isTypeUsed = formData.sector ? checkTemplateTypeExists(type, formData.sector) : false;
                       return (
-                        <option
+                    <option
                           key={type}
                           value={type}
                           disabled={isTypeUsed}
-                          style={{
-                            backgroundColor: "#1f2937",
+                      style={{
+                        backgroundColor: "#1f2937",
                             color: isTypeUsed ? "#6b7280" : "#ffffff",
-                          }}
-                        >
+                      }}
+                    >
                           {type} {isTypeUsed ? "(Déjà utilisé pour ce secteur)" : ""}
-                        </option>
+                    </option>
                       );
                     })}
-                  </select>
+                </select>
                   {errors.type && (
                     <p className="mt-1 text-sm text-red-400">{errors.type}</p>
                   )}
-                </div>
+              </div>
 
                 {/* Contenido */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
                     Contenu du Message *
-                  </label>
+                </label>
                   <textarea
-                    value={formData.content}
+                  value={formData.content}
                     onChange={(e) => {
                       const newContent = e.target.value;
                       // Aplicar límite de caracteres según el tipo seleccionado
@@ -502,10 +540,10 @@ export default function MessagesPage() {
                       errors.content ? 'border-red-500' : 'border-gray-400/30'
                     }`}
 
-                    style={{
-                      backgroundColor: "rgba(255, 255, 255, 0.1)",
-                    }}
-                  />
+                  style={{
+                    backgroundColor: "rgba(255, 255, 255, 0.1)",
+                  }}
+                />
                   {errors.content && (
                     <p className="mt-1 text-sm text-red-400">{errors.content}</p>
                   )}
@@ -515,20 +553,20 @@ export default function MessagesPage() {
                        formData.type === "LinkedIn Message Sender" ? 8000 : 2000} caractères
                     </p>
                   </div>
-                </div>
+              </div>
 
                 {/* Botones */}
                 {!viewingId && (
                   <div className="flex justify-end space-x-3">
-                    <button
+                <button
                       type="button"
                       onClick={cancelForm}
                       disabled={isSubmitting}
                       className="px-4 py-2 bg-gray-500/20 text-gray-300 rounded-lg hover:bg-gray-500/30 transition-colors disabled:opacity-50"
-                    >
+                >
                       Annuler
-                    </button>
-                    <button
+                </button>
+                <button
                       type="submit"
                       disabled={isSubmitting}
                       className="px-4 py-2 bg-europbots-secondary text-black font-semibold rounded-lg hover:bg-europbots-secondary/80 transition-colors flex items-center disabled:opacity-50"
@@ -549,16 +587,17 @@ export default function MessagesPage() {
                           Sauvegarder
                         </>
                       )}
-                    </button>
-                  </div>
-                )}
+                </button>
+                </div>
+              )}
               </form>
-            </div>
-          </div>
-        )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Tabla de Templates */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 overflow-hidden w-full">
+        <AnimatedCard className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 overflow-hidden w-full" delay={0.4}>
           <div className="w-full">
             <table className="w-full table-fixed">
               <thead className="bg-white/5">
@@ -593,10 +632,14 @@ export default function MessagesPage() {
                     </td>
                   </tr>
                 ) : (
-                  currentTemplates.map((template) => (
-                    <tr
+                  currentTemplates.map((template, index) => (
+                    <motion.tr
                       key={template.id}
                       className="hover:bg-white/5 transition-colors"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      whileHover={{ x: 4, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
                     >
                       <td className="w-2/5 px-6 py-4">
                         <div className="flex items-center">
@@ -649,17 +692,17 @@ export default function MessagesPage() {
                             onClick={() => deleteTemplate(template.id)}
                             className="p-2 bg-red-500/20 rounded-lg hover:bg-red-500/30 transition-colors"
                           >
-                            <Trash2 className="w-4 h-4 text-red-400" />
+                            <Trash2 className="text-red-400" />
                           </button>
                         </div>
                       </td>
-                    </tr>
+                    </motion.tr>
                   ))
                 )}
               </tbody>
             </table>
           </div>
-        </div>
+        </AnimatedCard>
 
         {/* Pagination */}
         {totalPages > 1 && (
