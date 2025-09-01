@@ -41,15 +41,15 @@ export function AxonautAlerts() {
   const getStatusText = () => {
     switch (status.status) {
       case 'online':
-        return 'Axonaut Conectado';
+        return 'Axonaut Connecté';
       case 'offline':
-        return 'Axonaut Desconectado';
+        return 'Axonaut Déconnecté';
       case 'error':
-        return 'Error de Conexión';
+        return 'Erreur de Connexion';
       case 'timeout':
-        return 'Timeout de Conexión';
+        return 'Timeout de Connexion';
       default:
-        return 'Estado Desconocido';
+        return 'État Inconnu';
     }
   };
 
@@ -117,7 +117,7 @@ export function AxonautAlerts() {
                     </div>
                   </div>
                   <h3 className="text-sm font-semibold text-white">
-                    Estado de Axonaut
+                    État d'Axonaut
                   </h3>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -180,7 +180,7 @@ export function AxonautAlerts() {
                   <div className="flex justify-between">
                     <span>API Key:</span>
                     <span className={status.apiKeyConfigured ? 'text-green-400' : 'text-red-400'}>
-                      {status.apiKeyConfigured ? 'Configurada' : 'No configurada'}
+                      {status.apiKeyConfigured ? 'Configurée' : 'Non configurée'}
                     </span>
                   </div>
 
@@ -195,21 +195,21 @@ export function AxonautAlerts() {
                 {/* Recomendaciones */}
                 {status.status !== 'online' && (
                   <div className="mt-3 pt-3 border-t border-gray-700">
-                    <p className="text-xs text-gray-400 mb-2">Recomendaciones:</p>
+                    <p className="text-xs text-gray-400 mb-2">Recommandations:</p>
                     <ul className="text-xs text-gray-300 space-y-1">
                       {!status.apiKeyConfigured && (
                         <li className="flex items-center space-x-1">
                           <span className="w-1 h-1 bg-gray-500 rounded-full"></span>
-                          <span>Configurar API Key de Axonaut</span>
+                          <span>Configurer la clé API d'Axonaut</span>
                         </li>
                       )}
                       <li className="flex items-center space-x-1">
                         <span className="w-1 h-1 bg-gray-500 rounded-full"></span>
-                        <span>Verificar conectividad de red</span>
+                        <span>Vérifier la connectivité réseau</span>
                       </li>
                       <li className="flex items-center space-x-1">
                         <span className="w-1 h-1 bg-gray-500 rounded-full"></span>
-                        <span>Contactar soporte de Axonaut</span>
+                        <span>Contacter le support d'Axonaut</span>
                       </li>
                     </ul>
                   </div>
@@ -219,9 +219,9 @@ export function AxonautAlerts() {
               {/* Footer */}
               <div className="mt-4 pt-3 border-t border-gray-700">
                 <div className="flex items-center justify-between text-xs text-gray-500">
-                  <span>Última verificación: {new Date(status.lastCheck).toLocaleTimeString()}</span>
+                  <span>Dernière vérification: {new Date(status.lastCheck).toLocaleTimeString()}</span>
                   <span className={status.status === 'online' ? 'text-green-400' : 'text-red-400'}>
-                    {status.status === 'online' ? 'Conectado' : 'Desconectado'}
+                    {status.status === 'online' ? 'Connecté' : 'Déconnecté'}
                   </span>
                 </div>
               </div>

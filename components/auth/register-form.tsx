@@ -37,7 +37,7 @@ export function RegisterForm() {
       } else {
         setMessage('Inscription réussie ! Redirection vers le tableau de bord...')
         setTimeout(() => {
-          router.push('/dashboard')
+          router.push('/')
           router.refresh()
         }, 2000)
       }
@@ -122,4 +122,4 @@ export function RegisterForm() {
       </div>
     </div>
   )
-} 
+}

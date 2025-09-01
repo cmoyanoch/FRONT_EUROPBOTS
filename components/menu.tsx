@@ -183,7 +183,7 @@ export default function Menu() {
         <div className="flex justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/dashboard" className="flex items-center">
+            <Link href="/" className="flex items-center">
               <img
                 src="/images/logo-europbots.svg"
                 alt="EUROPBOTS"

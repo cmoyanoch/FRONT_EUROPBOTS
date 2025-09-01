@@ -68,7 +68,7 @@ export default function AudienceTarget({ campaignId, campaign }: AudienceTargetP
         setError('No se encontraron IDs de roles válidos');
       }
     } catch (error) {
-      setError(`Error de conexión: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      setError(`Erreur de connexion: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
     } finally {
       setIsLoading(false);
     }
@@ -83,7 +83,7 @@ export default function AudienceTarget({ campaignId, campaign }: AudienceTargetP
   }, [campaign.id_roles, campaignId]);
 
   if (isLoading) {
-    return <span className="text-sm text-gray-400">Cargando roles...</span>;
+    return <span className="text-sm text-gray-400">Chargement des rôles...</span>;
   }
 
   if (error) {
@@ -133,5 +133,5 @@ export default function AudienceTarget({ campaignId, campaign }: AudienceTargetP
   }
 
   // Si no hay datos, mostrar mensaje
-  return <span className="text-sm text-gray-400">Sin roles asignados</span>;
+  return <span className="text-sm text-gray-400">Aucun rôle assigné</span>;
 }

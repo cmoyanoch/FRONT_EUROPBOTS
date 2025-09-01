@@ -35,7 +35,7 @@ export function LoginForm() {
         // Login successful
 
         // Lógica de redirección basada en el rol del usuario
-        let destinationPage = "/dashboard"; // Página por defecto
+        let destinationPage = "/campaign"; // Página por defecto
 
         if (data.user.role === "admin") {
           // User is admin, redirecting to /admin

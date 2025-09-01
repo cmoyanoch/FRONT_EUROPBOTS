@@ -235,7 +235,7 @@ La webapp se comunica con la API de Phantombuster a través de:
    ```bash
    # Verificar contenedor PostgreSQL
    docker compose ps | grep n8n_postgres
-   
+
    # Revisar logs
    docker compose logs n8n_postgres
    ```
@@ -248,7 +248,7 @@ La webapp se comunica con la API de Phantombuster a través de:
    ```bash
    # Limpiar cache de Next.js
    rm -rf .next/
-   
+
    # Reinstalar dependencias
    rm -rf node_modules/
    npm install

@@ -1,13 +1,13 @@
 import FuturisticBackground from "@/components/futuristic-background";
 import {
-  ArrowRight,
-  Bot,
-  CheckCircle,
-  MessageSquare,
-  Shield,
-  TrendingUp,
-  Users,
-  Zap,
+    ArrowRight,
+    Bot,
+    CheckCircle,
+    MessageSquare,
+    Shield,
+    TrendingUp,
+    Users,
+    Zap,
 } from "lucide-react";
 import { cookies } from "next/headers";
 import Image from "next/image";
@@ -124,11 +124,11 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-white mb-4">
-              Características Principales
+              Caractéristiques Principales
             </h2>
             <p className="text-xl text-gray-300 max-w-2xl mx-auto">
-              Descubre por qué EUROPBOTS es la elección preferida para empresas
-              que buscan automatización inteligente
+              Découvrez pourquoi EUROPBOTS est le choix préféré des entreprises
+              qui recherchent une automatisation intelligente
             </p>
           </div>
 
@@ -160,18 +160,18 @@ export default function HomePage() {
       <section className="py-20 bg-gradient-to-r from-europbots-primary/80 to-europbots-dark/80 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-4xl font-bold text-white mb-6">
-            ¿Listo para Transformar tu Negocio?
+            Prêt à Transformer votre Entreprise ?
           </h2>
           <p className="text-xl text-europbots-secondary/90 mb-8">
-            Únete a miles de empresas que ya están automatizando sus procesos
-            con EUROPBOTS
+            Rejoignez des milliers d'entreprises qui automatisent déjà leurs processus
+            avec EUROPBOTS
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button className="bg-europbots-secondary text-europbots-primary font-bold py-4 px-8 rounded-lg hover:bg-europbots-secondary/90 transition-colors text-lg">
-              Comenzar Ahora
+              Commencer Maintenant
             </button>
             <button className="border-2 border-europbots-secondary text-europbots-secondary font-bold py-4 px-8 rounded-lg hover:bg-europbots-secondary hover:text-europbots-primary transition-colors text-lg">
-              Contactar Ventas
+              Contacter les Ventes
             </button>
           </div>
         </div>
@@ -183,17 +183,17 @@ export default function HomePage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-4xl font-bold text-white mb-6">
-                ¿Por qué elegir EUROPBOTS?
+                Pourquoi choisir EUROPBOTS ?
               </h2>
               <div className="space-y-6">
                 <div className="flex items-start space-x-4">
                   <CheckCircle className="w-6 h-6 text-europbots-secondary mt-1 flex-shrink-0" />
                   <div>
                     <h3 className="font-semibold text-white mb-2">
-                      Implementación Rápida
+                      Implémentation Rapide
                     </h3>
                     <p className="text-gray-300">
-                      Configura tu primera automatización en menos de 30 minutos
+                      Configurez votre première automatisation en moins de 30 minutes
                     </p>
                   </div>
                 </div>
@@ -201,11 +201,10 @@ export default function HomePage() {
                   <CheckCircle className="w-6 h-6 text-europbots-secondary mt-1 flex-shrink-0" />
                   <div>
                     <h3 className="font-semibold text-white mb-2">
-                      Soporte 24/7
+                      Support 24/7
                     </h3>
                     <p className="text-gray-300">
-                      Equipo de expertos disponible para ayudarte en cualquier
-                      momento
+                      Équipe d'experts disponible pour vous aider à tout moment
                     </p>
                   </div>
                 </div>
@@ -213,10 +212,10 @@ export default function HomePage() {
                   <CheckCircle className="w-6 h-6 text-europbots-secondary mt-1 flex-shrink-0" />
                   <div>
                     <h3 className="font-semibold text-white mb-2">
-                      Escalabilidad Ilimitada
+                      Évolutivité Illimitée
                     </h3>
                     <p className="text-gray-300">
-                      Crece sin límites con nuestra infraestructura cloud
+                      Croissez sans limites avec notre infrastructure cloud
                     </p>
                   </div>
                 </div>
@@ -224,23 +223,23 @@ export default function HomePage() {
                   <CheckCircle className="w-6 h-6 text-europbots-secondary mt-1 flex-shrink-0" />
                   <div>
                     <h3 className="font-semibold text-white mb-2">
-                      ROI Garantizado
+                      ROI Garanti
                     </h3>
                     <p className="text-gray-300">
-                      Ve resultados positivos en los primeros 30 días
+                      Voyez des résultats positifs dans les 30 premiers jours
                     </p>
                   </div>
                 </div>
               </div>
             </div>
             <div className="bg-gradient-to-br from-europbots-primary/80 to-europbots-dark/80 backdrop-blur-sm rounded-xl p-8 text-white border border-europbots-secondary/20">
-              <h3 className="text-2xl font-bold mb-6">Prueba Gratuita</h3>
+              <h3 className="text-2xl font-bold mb-6">Essai Gratuit</h3>
               <p className="text-europbots-secondary/90 mb-6">
-                Comienza con 14 días de prueba gratuita. Sin compromisos, sin
-                tarjetas de crédito.
+                Commencez avec 14 jours d'essai gratuit. Sans engagement, sans
+                carte de crédit.
               </p>
               <button className="w-full bg-europbots-secondary text-europbots-primary font-bold py-3 px-6 rounded-lg hover:bg-europbots-secondary/90 transition-colors">
-                Iniciar Prueba Gratuita
+                Démarrer l'Essai Gratuit
               </button>
             </div>
           </div>

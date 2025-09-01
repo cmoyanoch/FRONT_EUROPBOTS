@@ -79,16 +79,16 @@ export default function ConfigPage() {
   const { showSuccess, showError, showWarning, showInfo } = useToast();
 
   const tabs = [
-    { id: "profile", name: "Perfil", icon: User },
-    { id: "security", name: "Seguridad", icon: Shield },
-    { id: "notifications", name: "Notificaciones", icon: Bell },
-    { id: "integrations", name: "Integraciones", icon: Zap },
+    { id: "profile", name: "Profil", icon: User },
+    { id: "security", name: "Sécurité", icon: Shield },
+    { id: "notifications", name: "Notifications", icon: Bell },
+    { id: "integrations", name: "Intégrations", icon: Zap },
     { id: "api", name: "API", icon: Key },
   ];
 
   const handleSaveSearchWebhook = async () => {
     if (!searchWebhookUrl.trim()) {
-      showError("URL requerida", "Por favor, ingresa una URL válida para el webhook de búsqueda");
+      showError("URL requise", "Veuillez saisir une URL valide pour le webhook de recherche");
       return;
     }
 
@@ -107,15 +107,15 @@ export default function ConfigPage() {
 
       if (response.ok) {
         setSearchWebhookStatus("success");
-        showSuccess("Webhook guardado", "El webhook de búsqueda se ha guardado exitosamente");
+        showSuccess("Webhook sauvegardé", "Le webhook de recherche a été sauvegardé avec succès");
         setTimeout(() => setSearchWebhookStatus("idle"), 3000);
       } else {
-        throw new Error("Error al guardar el webhook de búsqueda");
+        throw new Error("Erreur lors de la sauvegarde du webhook de recherche");
       }
     } catch (error) {
       console.error("Error saving search webhook:", error);
       setSearchWebhookStatus("error");
-      showError("Error al guardar", "Error al guardar el webhook de búsqueda");
+      showError("Erreur de sauvegarde", "Erreur lors de la sauvegarde du webhook de recherche");
       setTimeout(() => setSearchWebhookStatus("idle"), 3000);
     } finally {
       setIsSavingSearchWebhook(false);

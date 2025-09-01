@@ -50,9 +50,9 @@ export default function LoginPage() {
 
       if (response.ok) {
         showSuccess("Connexion réussie!", `Bienvenue ${data.user.full_name || data.user.email}`);
-        
+
         // Lógica de redirección basada en el rol del usuario
-        let destinationPage = "/dashboard"; // Página por defecto
+        let destinationPage = "/"; // Página por defecto
 
         if (data.user.role === "admin") {
           destinationPage = "/admin";
@@ -82,7 +82,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md relative z-10">
         <AnimatedCard className="bg-white/10 backdrop-blur-sm rounded-2xl border border-europbots-secondary/20 p-4 sm:p-6 lg:p-8 shadow-2xl" delay={0.2}>
           {/* Logo */}
-          <motion.div 
+          <motion.div
             className="text-center mb-8"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -100,7 +100,7 @@ export default function LoginPage() {
                 className="h-12 sm:h-16 w-auto mx-auto mb-4 filter brightness-0 invert"
               />
             </motion.div>
-            <motion.h1 
+            <motion.h1
               className="text-xl sm:text-2xl font-bold text-white"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -111,8 +111,8 @@ export default function LoginPage() {
           </motion.div>
 
           {/* Formulario */}
-          <motion.form 
-            onSubmit={handleSubmit} 
+          <motion.form
+            onSubmit={handleSubmit}
             className="space-y-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -120,7 +120,7 @@ export default function LoginPage() {
           >
             <AnimatePresence>
               {successMessage && (
-                <motion.div 
+                <motion.div
                   className="bg-green-500/20 border border-green-500/30 text-green-300 px-4 py-3 rounded-lg text-sm"
                   initial={{ opacity: 0, scale: 0.9, y: -10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -134,7 +134,7 @@ export default function LoginPage() {
 
             <AnimatePresence>
               {error && (
-                <motion.div 
+                <motion.div
                   className="bg-red-500/20 border border-red-500/30 text-red-300 px-4 py-3 rounded-lg text-sm"
                   initial={{ opacity: 0, scale: 0.9, y: -10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -158,7 +158,7 @@ export default function LoginPage() {
                 Adresse E-mail
               </label>
               <div className="relative">
-                <motion.div 
+                <motion.div
                   className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
                   animate={{ scale: email ? 1.1 : 1 }}
                   transition={{ duration: 0.2 }}
@@ -190,7 +190,7 @@ export default function LoginPage() {
                 Mot de Passe
               </label>
               <div className="relative">
-                <motion.div 
+                <motion.div
                   className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
                   animate={{ scale: password ? 1.1 : 1 }}
                   transition={{ duration: 0.2 }}
@@ -241,13 +241,13 @@ export default function LoginPage() {
               </div>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               className="flex items-center"
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: 0.8 }}
             >
-              <motion.label 
+              <motion.label
                 className="flex items-center cursor-pointer"
                 whileHover={{ scale: 1.02 }}
               >
@@ -280,7 +280,7 @@ export default function LoginPage() {
                     exit={{ opacity: 0 }}
                     className="flex items-center justify-center space-x-2"
                   >
-                    <motion.div 
+                    <motion.div
                       className="h-4 w-4 border-b-2 border-europbots-primary rounded-full"
                       animate={{ rotate: 360 }}
                       transition={{ duration: 1, repeat: Infinity, ease: "linear" }}

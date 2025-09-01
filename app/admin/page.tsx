@@ -6,14 +6,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Checkbox } from '@/components/ui/checkbox'
-import { 
-  Users, 
-  Shield, 
-  Settings, 
-  UserPlus, 
-  UserX, 
-  Edit, 
-  Trash2, 
+import {
+  Users,
+  Shield,
+  Settings,
+  UserPlus,
+  UserX,
+  Edit,
+  Trash2,
   Search,
   Filter,
   MoreHorizontal,
@@ -52,7 +52,7 @@ export default function AdminPage() {
 
   // Permisos del menú por rol
   const [menuPermissions, setMenuPermissions] = useState<MenuPermission[]>([
-    { id: 'dashboard', name: 'Dashboard', path: '/dashboard', icon: 'Home', roles: ['user', 'admin'] },
+    { id: 'dashboard', name: 'Dashboard', path: '/campaign', icon: 'Home', roles: ['user', 'admin'] },
     { id: 'search', name: 'Recherche', path: '/search', icon: 'Search', roles: ['user', 'admin'] },
     { id: 'analytics', name: 'Analytics', path: '/analytics', icon: 'BarChart3', roles: ['admin'] },
     { id: 'automation', name: 'Automation', path: '/automation', icon: 'Bot', roles: ['admin'] },
@@ -91,7 +91,7 @@ export default function AdminPage() {
       })
 
       if (response.ok) {
-        setUsers(prev => prev.map(user => 
+        setUsers(prev => prev.map(user =>
           user.id === userId ? { ...user, role: newRole } : user
         ))
       }
@@ -111,7 +111,7 @@ export default function AdminPage() {
       })
 
       if (response.ok) {
-        setUsers(prev => prev.map(user => 
+        setUsers(prev => prev.map(user =>
           user.id === userId ? { ...user, is_active: !user.is_active } : user
         ))
       }
@@ -137,10 +137,10 @@ export default function AdminPage() {
     const matchesSearch = user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          user.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesRole = filterRole === 'all' || user.role === filterRole
-    const matchesStatus = filterStatus === 'all' || 
+    const matchesStatus = filterStatus === 'all' ||
                          (filterStatus === 'active' && user.is_active) ||
                          (filterStatus === 'inactive' && !user.is_active)
-    
+
     return matchesSearch && matchesRole && matchesStatus
   })
 
@@ -166,7 +166,7 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen relative">
       <FuturisticBackground />
-      
+
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-8">
@@ -257,7 +257,7 @@ export default function AdminPage() {
                   />
                 </div>
               </div>
-              
+
               <select
                 value={filterRole}
                 onChange={(e) => setFilterRole(e.target.value)}
@@ -389,8 +389,8 @@ export default function AdminPage() {
                       </td>
                       <td className="py-3 px-4">
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                          user.is_active 
-                            ? 'bg-green-500/20 text-green-400' 
+                          user.is_active
+                            ? 'bg-green-500/20 text-green-400'
                             : 'bg-red-500/20 text-red-400'
                         }`}>
                           {user.is_active ? 'Activo' : 'Inactivo'}
@@ -419,4 +419,4 @@ export default function AdminPage() {
       </div>
     </div>
   )
-} 
+}
