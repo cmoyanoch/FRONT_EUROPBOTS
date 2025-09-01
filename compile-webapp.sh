@@ -42,15 +42,15 @@ command_exists() {
 check_requirements() {
     print_status "Verificando requisitos del sistema..."
 
-    # Verificar que estemos en el directorio web_app
+    # Verificar que estemos en el directorio web-app
     if [ ! -f "package.json" ]; then
-        print_error "No se encontró package.json. Asegúrate de estar en el directorio web_app."
+        print_error "No se encontró package.json. Asegúrate de estar en el directorio web-app."
         exit 1
     fi
 
     # Verificar que exista el docker-compose.yml en el directorio padre
     if [ ! -f "../docker-compose.yml" ]; then
-        print_error "No se encontró docker-compose.yml en el directorio padre. Asegúrate de estar en web_app/."
+        print_error "No se encontró docker-compose.yml en el directorio padre. Asegúrate de estar en web-app/."
         exit 1
     fi
 
@@ -190,9 +190,52 @@ build_nextjs() {
     fi
 }
 
+# Función para limpiar Docker antes de compilar
+cleanup_docker_before() {
+    print_status "🧹 Limpiando Docker antes de compilar..."
+    
+    # Eliminar imágenes sin etiqueta
+    local dangling_images=$(docker images -f "dangling=true" -q)
+    if [ ! -z "$dangling_images" ]; then
+        print_status "Eliminando imágenes sin etiqueta..."
+        docker rmi $dangling_images 2>/dev/null || print_warning "Algunas imágenes no se pudieron eliminar"
+    fi
+    
+    # Limpiar contenedores detenidos
+    local stopped=$(docker ps -a -q -f status=exited)
+    if [ ! -z "$stopped" ]; then
+        docker rm $stopped 2>/dev/null || true
+    fi
+    
+    # Limpiar sistema
+    docker volume prune -f >/dev/null 2>&1 || true
+    docker network prune -f >/dev/null 2>&1 || true
+    
+    print_success "✅ Sistema Docker limpio - listo para compilar"
+}
+
+# Función para limpiar Docker después de compilar
+cleanup_docker_after() {
+    print_status "🧹 Limpieza post-compilación..."
+    
+    # Eliminar imágenes sin etiqueta generadas
+    local dangling_images=$(docker images -f "dangling=true" -q)
+    if [ ! -z "$dangling_images" ]; then
+        docker rmi $dangling_images 2>/dev/null || true
+    fi
+    
+    # Limpiar caché de build
+    docker builder prune -f >/dev/null 2>&1 || true
+    
+    print_success "✅ Limpieza post-compilación completada"
+}
+
 # Función para compilar Docker
 build_docker() {
     print_status "Compilando contenedores Docker..."
+
+    # Limpiar imágenes Docker antes de compilar
+    cleanup_docker_before
 
     # Cambiar al directorio padre para ejecutar docker compose
     cd ..
@@ -201,6 +244,10 @@ build_docker() {
     print_status "Compilando contenedor webapp..."
     if docker compose build webapp --no-cache; then
         print_success "Contenedor webapp compilado exitosamente"
+        
+        # Limpiar imágenes intermedias después del build
+        print_status "Limpiando imágenes intermedias..."
+        docker image prune -f >/dev/null 2>&1 || true
     else
         print_error "Error en la compilación de webapp"
         exit 1
@@ -211,13 +258,20 @@ build_docker() {
         print_status "Compilando contenedor phantombuster-api..."
         if docker compose build phantombuster-api --no-cache; then
             print_success "Contenedor phantombuster-api compilado exitosamente"
+            
+            # Limpiar imágenes intermedias después del build
+            print_status "Limpiando imágenes intermedias..."
+            docker image prune -f >/dev/null 2>&1 || true
         else
             print_warning "Error en la compilación de phantombuster-api (continuando...)"
         fi
     fi
 
-    # Volver al directorio web_app
-    cd /media/cristian/Datos_compartidos/server_europbot/web_app
+    # Limpiar imágenes Docker después de compilar
+    cleanup_docker_after
+
+    # Volver al directorio web-app
+    cd web-app
 
     print_success "Todos los contenedores Docker compilados exitosamente"
 }
@@ -237,8 +291,8 @@ start_services() {
         exit 1
     fi
 
-    # Volver al directorio web_app
-    cd web_app
+    # Volver al directorio web-app
+    cd web-app
 }
 
 # Función para verificar servicios
@@ -294,8 +348,8 @@ check_services() {
         fi
     fi
 
-    # Volver al directorio web_app
-    cd web_app   # Cambiado de ../web_app a web_app
+    # Volver al directorio web-app
+    cd web-app   # Cambiado de ../web-app a web-app
 }
 
 # Función para mostrar información final
@@ -316,6 +370,8 @@ show_final_info() {
     echo "   • Detener: docker compose down"
     echo "   • Reiniciar: docker compose restart"
     echo "   • Estado: docker compose ps"
+    echo "   • Limpiar Docker: docker system prune -f"
+    echo "   • Eliminar imágenes sin etiqueta: docker image prune -f"
     echo ""
     echo "📊 Monitoreo:"
     echo "   • Logs webapp: docker compose logs webapp -f"
