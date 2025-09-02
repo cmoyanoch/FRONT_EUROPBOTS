@@ -113,10 +113,13 @@ const getCountryNamesFromDB = async (countryCodes: string[]): Promise<string[]> 
 
 // Función para agrupar roles por perfiles
 const groupRolesByProfiles = (roles: Role[]) => {
+  console.log('🔍 groupRolesByProfiles - Roles recibidos:', roles);
+
   // Agrupar roles por id_profiles
   const profileGroups: { [key: number]: Role[]; } = {};
 
   roles.forEach(role => {
+    console.log(`🔍 Procesando rol: ${role.name}, id_profiles: ${role.id_profiles}, profile_name: ${role.profile_name}`);
     const profileId = role.id_profiles || 0;
     if (!profileGroups[profileId]) {
       profileGroups[profileId] = [];
@@ -741,19 +744,30 @@ export default function CampaignPage() {
       const selectedRolesWithProfiles: Array<{ roleId: number; roleName: string; profileId: number; profileName: string }> = [];
       const profileGroups = groupRolesByProfiles(availableRoles);
 
+      console.log('🔍 Profile groups generados:', profileGroups);
+      console.log('🔍 Roles seleccionados:', selectedRoles);
+
       profileGroups.forEach((profileGroup) => {
+        console.log(`🔍 Procesando grupo de perfil: ID=${profileGroup.profileId}, Nombre=${profileGroup.profileName}`);
+        console.log(`🔍 Roles en este grupo:`, profileGroup.roles);
+
         // Verificar si este grupo tiene roles seleccionados
         profileGroup.roles.forEach(role => {
+          console.log(`🔍 Verificando rol: ${role.name}, ¿está seleccionado? ${selectedRoles.includes(role.name)}`);
           if (selectedRoles.includes(role.name)) {
-            selectedRolesWithProfiles.push({
+            const roleWithProfile = {
               roleId: role.id,
               roleName: role.name,
               profileId: profileGroup.profileId,
               profileName: profileGroup.profileName
-            });
+            };
+            console.log(`🔍 Agregando rol con perfil:`, roleWithProfile);
+            selectedRolesWithProfiles.push(roleWithProfile);
           }
         });
       });
+
+      console.log('🔍 Roles con perfiles construidos:', selectedRolesWithProfiles);
 
       // Datos de la campaña a enviar al webhook
       const campaignData = {
@@ -766,6 +780,8 @@ export default function CampaignPage() {
         createdAt: new Date().toISOString(),
         status: "pending",
       };
+
+      console.log('📤 Datos de campaña a enviar:', campaignData);
 
       // Llamada al webhook de n8n
       const response = await fetch("/api/n8n/create-campaign", {
@@ -796,26 +812,40 @@ export default function CampaignPage() {
 
   // Función para manejar la eliminación de campañas
   const handleDeleteCampaign = async (campaignId: string) => {
+    console.log('🔍 handleDeleteCampaign llamado con ID:', campaignId);
+
     if (
       !confirm(
         "Êtes-vous sûr de vouloir désactiver cette campagne? Cette action la masquera de la liste."
       )
     ) {
+      console.log('❌ Usuario canceló la confirmación');
       return;
     }
 
+    console.log('✅ Usuario confirmó la desactivación');
+
     try {
+      console.log('🔄 Iniciando desactivación de campaña...');
       setDeletingCampaign(campaignId);
-      const response = await fetch(`/api/campaigns/${campaignId}/deactivate`, {
+
+      const url = `/api/campaigns/${campaignId}/deactivate`;
+      console.log('📡 Llamando a:', url);
+
+      const response = await fetch(url, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
       });
 
+      console.log('📥 Respuesta recibida:', response.status, response.statusText);
+
       const data = await response.json();
+      console.log('📋 Datos de respuesta:', data);
 
       if (data.success) {
+        console.log('✅ Campaña desactivada exitosamente');
         // Campaña desactivada exitosamente
         // Remover la campaña de la lista local
         setCampaigns((prevCampaigns) =>
@@ -834,6 +864,7 @@ export default function CampaignPage() {
       console.error("❌ Error de conexión al desactivar campaña:", error);
       showError("Erreur de connexion lors de la désactivation de la campagne");
     } finally {
+      console.log('🔄 Limpiando estado de eliminación');
       setDeletingCampaign(null);
     }
   };
@@ -1102,7 +1133,10 @@ export default function CampaignPage() {
                           </div>
                           <div className="flex gap-2 flex-shrink-0 self-start">
                             <button
-                              onClick={() => handleDeleteCampaign(campaign.campaign_id)}
+                              onClick={() => {
+                                console.log('🖱️ Botón de eliminar clickeado para campaña:', campaign.campaign_id);
+                                handleDeleteCampaign(campaign.campaign_id);
+                              }}
                               disabled={deletingCampaign === campaign.campaign_id}
                               className={`p-2 sm:p-3 rounded-lg transition-colors campaign-button ${deletingCampaign === campaign.campaign_id
                                   ? "text-gray-500 cursor-not-allowed"

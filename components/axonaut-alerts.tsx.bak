@@ -64,7 +64,7 @@ export function AxonautAlerts() {
   };
 
   return (
-    <div className="relative">
+    <div className="relative hidden">
       {/* Botón de estado principal - solo Axonaut */}
       <Button
         variant="ghost"

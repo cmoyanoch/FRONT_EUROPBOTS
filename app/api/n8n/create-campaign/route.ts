@@ -51,12 +51,17 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // Usar perfiles específicos y roles enviados desde el frontend
-    console.log('Procesando perfiles y roles específicos...')
-    const profiles = campaignData.filters.profiles || []
+    // Extraer roles y perfiles
     const roles = campaignData.filters.roles || []
-    console.log('Perfiles específicos recibidos:', profiles)
-    console.log('Roles específicos recibidos:', roles)
+    console.log('Roles recibidos:', roles.length, 'roles')
+    
+    // Extraer profileIds únicos de los roles
+    const profiles = Array.from(new Set(
+      roles
+        .map((role: any) => role.profileId)
+        .filter((id: any) => id !== null && id !== undefined)
+    ))
+    console.log('Profiles extraídos:', profiles)
 
     // Obtener webhook URL
     console.log('Obteniendo webhook URL para automation...')
@@ -72,6 +77,11 @@ export async function POST(request: NextRequest) {
 
     // Construir la URL con parámetros (enviar tanto perfiles como roles)
     const url = new URL(webhookUrl)
+    console.log('🔍 Construyendo URL del webhook...')
+    console.log('🔍 Sectors:', campaignData.filters.sectors)
+    console.log('🔍 Profiles (IDs):', profiles)
+    console.log('🔍 Roles (objetos):', roles)
+
     url.searchParams.set('sectors', campaignData.filters.sectors.join(','))
     url.searchParams.set('profiles', profiles.join(',')) // Usar perfiles específicos
 
@@ -89,7 +99,7 @@ export async function POST(request: NextRequest) {
     url.searchParams.set('roles', roleNames.join(',')) // Enviar nombres de roles
 
     url.searchParams.set('regions', campaignData.filters.regions?.join(',') || '')
-    url.searchParams.set('searchId', `search_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`)
+    url.searchParams.set('searchId', `search_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`)
     url.searchParams.set('userId', 'default-user')
     url.searchParams.set('userEmail', 'admin@europbot.com')
     url.searchParams.set('source', 'europbots_webapp')
@@ -101,7 +111,13 @@ export async function POST(request: NextRequest) {
     if (finalUrl.includes('n8n.localhost')) {
       finalUrl = finalUrl.replace('https://n8n.localhost', 'http://n8n:5678')
     }
-    console.log('URL final:', finalUrl)
+    console.log('🔍 URL final construida:', finalUrl)
+    console.log('🔍 Parámetros de la URL:')
+    console.log('  - sectors:', url.searchParams.get('sectors'))
+    console.log('  - profiles:', url.searchParams.get('profiles'))
+    console.log('  - roleIds:', url.searchParams.get('roleIds'))
+    console.log('  - roles:', url.searchParams.get('roles'))
+    console.log('  - regions:', url.searchParams.get('regions'))
 
     // Llamar al webhook
     console.log('Llamando webhook de campaña...')

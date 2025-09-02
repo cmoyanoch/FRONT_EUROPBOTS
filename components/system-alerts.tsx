@@ -1,6 +1,5 @@
 "use client";
 
-import { AxonautAlerts } from './axonaut-alerts';
 import { PhantombusterAlerts } from './phantombuster-alerts';
 
 export function SystemAlerts() {
@@ -9,8 +8,8 @@ export function SystemAlerts() {
       {/* Componente de Phantombuster */}
       <PhantombusterAlerts />
 
-      {/* Componente de Axonaut */}
-      <AxonautAlerts />
+      {/* Componente de Axonaut - OCULTO TEMPORALMENTE */}
+      {/* <AxonautAlerts /> */}
     </div>
   );
 }
