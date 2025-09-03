@@ -5,21 +5,21 @@ import { Button } from "@/components/ui/button";
 import { useNotification } from "@/contexts/NotificationContext";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-    BarChart3,
-    Bell,
-    Key,
-    LayoutDashboard,
-    LogOut,
-    LucideIcon,
-    Menu as MenuIcon,
-    MessageSquare,
-    Search,
-    Settings,
-    Shield,
-    Target,
-    Users,
-    X,
-    Zap,
+  BarChart3,
+  Bell,
+  Key,
+  LayoutDashboard,
+  LogOut,
+  LucideIcon,
+  Menu as MenuIcon,
+  MessageSquare,
+  Search,
+  Settings,
+  Shield,
+  Target,
+  Users,
+  X,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -183,7 +183,7 @@ export default function Menu() {
         <div className="flex justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link href="/" className="flex items-center">
+            <Link href="/campaign" className="flex items-center">
               <img
                 src="/images/logo-europbots.svg"
                 alt="EUROPBOTS"
