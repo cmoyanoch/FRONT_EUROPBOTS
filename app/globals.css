@@ -6,7 +6,7 @@
 @layer components {
   /* Contenedor relativo que tiene una imagen */
   .relative:has(img) {
-    padding-top: 0.6rem !important;
+    padding-top: 0.4rem !important;
   }
 
   /* Logo cuando el sistema está online (verde) - bg=22c55e */
@@ -522,9 +522,17 @@
   height: 4rem;
 }
 
-/* Custom grid columns */
-.sm\:grid-cols-5 {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+/* Custom responsive grid-template-columns class */
+.grid-cols {
+  /* Móvil: 2 columnas */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Escritorio (sm y superiores): 5 columnas */
+@media (min-width: 640px) {
+  .grid-cols {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
 }
 
 /* Custom text styles for process stats */
@@ -540,4 +548,41 @@
 
 .hover\:bg-accent:hover {
   background-color: hsl(210deg 40% 96% / 4%) !important;
+}
+
+/* Custom utility class for justify-content: flex-end (sm y superiores) */
+.justify-end-pc {
+  justify-content: flex-start; /* Por defecto en móvil */
+}
+
+/* sm y superiores (640px+): justify-end */
+@media (min-width: 640px) {
+  .justify-end-pc {
+    justify-content: flex-end;
+  }
+}
+
+/* Custom text-right class for mobile only (hasta sm) */
+.text-right-mobile {
+  text-align: right; /* Mobile: alineado a la derecha */
+}
+
+/* sm y superiores (640px+): sin text-align */
+@media (min-width: 640px) {
+  .text-right-mobile {
+    text-align: unset; /* sm+: sin alineación forzada */
+  }
+}
+
+/* Custom responsive grid-template-columns class */
+.grid-cols {
+  /* Móvil: 2 columnas */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+/* Escritorio (sm y superiores): 5 columnas */
+@media (min-width: 640px) {
+  .grid-cols {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
 }

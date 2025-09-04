@@ -96,7 +96,7 @@ export default function AudienceTarget({ campaignId, campaign }: AudienceTargetP
     const profileCount = profileIds.length;
 
     // Determinar las clases de grid basadas en el número de perfiles
-    let gridClasses = "grid grid-cols-1 sm:grid-cols-2";
+    let gridClasses = "grid grid-cols sm:grid-cols-2";
     if (profileCount <= 2) {
       gridClasses += " lg:grid-cols-2";
     } else if (profileCount <= 3) {
@@ -113,12 +113,12 @@ export default function AudienceTarget({ campaignId, campaign }: AudienceTargetP
           const profileData = rolesData[profileId];
           return (
             <div key={profileId} className="space-y-2">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 sm:justify-end">
                 <span className="text-xs text-europbots-secondary font-medium">
                   {profileData ? profileData.profile.name : `Perfil ${profileId}`}
                 </span>
               </div>
-              <div className="space-y-1">
+              <div className="space-y-1 sm:text-right">
                 {profileData.roles.map((role: Role, index: number) => (
                   <div key={index} className="text-xs text-white">
                     - {role.name}

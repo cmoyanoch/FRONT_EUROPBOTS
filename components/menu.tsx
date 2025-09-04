@@ -182,7 +182,7 @@ export default function Menu() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center">
+          <div className="flex items-center pt-3">
             <Link href="/campaign" className="flex items-center">
               <img
                 src="/images/logo-europbots.svg"
@@ -396,37 +396,23 @@ export default function Menu() {
                             </motion.span>
                           )}
                         </motion.div>
+
+
                       </Link>
+
+
+
+
+
+
+
+
                     </motion.div>
                   );
                 })}
 
                 {/* Botones de auth en móvil si no hay usuario */}
-                {!user && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: navItems.length * 0.1 }}
-                    className="pt-4 border-t border-europbots-secondary/20 space-y-2"
-                  >
-                    <Link href="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                      <motion.div
-                        whileTap={{ scale: 0.95 }}
-                        className="flex items-center px-3 py-3 rounded-xl text-base font-medium text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200"
-                      >
-                        Connexion
-                      </motion.div>
-                    </Link>
-                    <Link href="/register" onClick={() => setIsMobileMenuOpen(false)}>
-                      <motion.div
-                        whileTap={{ scale: 0.95 }}
-                        className="flex items-center px-3 py-3 rounded-xl text-base font-medium bg-europbots-secondary text-europbots-primary hover:bg-europbots-secondary/90 transition-all duration-200 shadow-lg"
-                      >
-                        Inscription
-                      </motion.div>
-                    </Link>
-                  </motion.div>
-                )}
+
               </div>
             </motion.div>
           )}

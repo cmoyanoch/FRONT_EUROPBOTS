@@ -1008,7 +1008,7 @@ export default function CampaignPage() {
         </AnimatedCard>
 
         {/* Search and Filter Section */}
-        <AnimatedCard className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-4 sm:p-6 mb-4 sm:mb-6 lg:mb-8" delay={0.1}>
+        <AnimatedCard className="hidden sm:block bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-4 sm:p-6 mb-4 sm:mb-6 lg:mb-8" delay={0.1}>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
               <motion.div
@@ -1130,8 +1130,7 @@ export default function CampaignPage() {
                                 Campagne automatisée LinkedIn
                               </p>
                             </div>
-                          </div>
-                          <div className="flex gap-2 flex-shrink-0 self-start">
+                            <div className="flex gap-2 flex-shrink-0 self-start">
                             <button
                               onClick={() => {
                                 console.log('🖱️ Botón de eliminar clickeado para campaña:', campaign.campaign_id);
@@ -1150,6 +1149,7 @@ export default function CampaignPage() {
                                 <Trash2 className="w-4 h-4 sm:w-5 sm:h-5 text-red-400" />
                               )}
                             </button>
+                          </div>
                           </div>
                         </div>
 
@@ -1186,7 +1186,7 @@ export default function CampaignPage() {
                         </div>
 
                         {/* Grid de estadísticas de proceso */}
-                        <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 sm:gap-4 mb-4">
+                        <div className="grid grid-cols-4 grid-cols gap-2 sm:gap-4 mb-4">
                           {/* LEADS */}
                           <div className="text-center p-2 sm:p-2 bg-white/5 rounded-lg">
                             <p className="process-stat-title font-bold text-white">LEADS</p>
@@ -1275,7 +1275,7 @@ export default function CampaignPage() {
                               {/* Régions cibles */}
                               <div className="flex flex-col sm:flex-row sm:justify-between text-sm gap-1">
                                 <span className="text-gray-300">Régions cibles:</span>
-                                <div className="text-white font-medium text-left w-full sm:w-auto">
+                                <div className="text-white font-medium text-right sm:text-left w-full sm:w-auto">
                                   {(() => {
                                     // Parsear los códigos de países desde campaign.regions
                                     let countryCodes: string[] = [];

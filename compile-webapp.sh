@@ -106,15 +106,41 @@ build_app() {
     fi
 }
 
-# Función para reiniciar el servicio
-restart_service() {
-    print_status "🔄 Reiniciando servicio webapp..."
+# Función para recompilar la imagen Docker
+rebuild_docker() {
+    print_status "🐳 Reconstruyendo imagen Docker de webapp..."
 
     # Verificar si estamos en un entorno Docker
     if [ -f "../docker-compose.yml" ]; then
         cd ..
-        if docker compose restart webapp; then
-            print_success "✅ Servicio reiniciado exitosamente"
+        # Recompilar sin caché para asegurar que los cambios se reflejen
+        if docker compose build webapp --no-cache; then
+            print_success "✅ Imagen Docker reconstruida exitosamente"
+        else
+            print_error "❌ Error al reconstruir la imagen Docker"
+            exit 1
+        fi
+        cd web_app
+    else
+        print_warning "⚠️ No se encontró docker-compose.yml. Omitiendo recompilación Docker."
+    fi
+}
+
+# Función para reiniciar el servicio
+restart_service() {
+    print_status "🔄 Reiniciando servicio webapp con nueva imagen..."
+
+    # Verificar si estamos en un entorno Docker
+    if [ -f "../docker-compose.yml" ]; then
+        cd ..
+        # Primero detener el contenedor
+        print_status "⏹️ Deteniendo contenedor existente..."
+        docker compose down webapp 2>/dev/null || true
+        
+        # Luego iniciarlo con la nueva imagen
+        print_status "🚀 Iniciando con nueva imagen..."
+        if docker compose up webapp -d; then
+            print_success "✅ Servicio reiniciado exitosamente con nueva imagen"
         else
             print_error "❌ Error al reiniciar el servicio"
             exit 1
@@ -173,7 +199,7 @@ show_final_info() {
     echo ""
     echo "🔧 Comandos útiles:"
     echo "   • Ver logs: docker compose logs webapp -f"
-    echo "   • Reiniciar: docker compose restart webapp"
+    echo "   • Reiniciar: docker compose up webapp -d (con nueva imagen)"
     echo "   • Estado: docker compose ps webapp"
     echo "   • Health check: curl http://localhost:3000"
     echo ""
@@ -203,9 +229,9 @@ show_help() {
     echo "Uso: $0 [OPCIÓN]"
     echo ""
     echo "Opciones:"
-    echo "  build       - Compilar y reiniciar (default)"
+    echo "  build       - Compilar y reiniciar (default, incluye --no-cache)"
     echo "  deps        - Solo instalar dependencias"
-    echo "  restart     - Solo reiniciar servicio"
+    echo "  restart     - Solo reiniciar servicio (incluye recompilación Docker)"
     echo "  check       - Solo verificar estado"
     echo "  help        - Mostrar esta ayuda"
     echo ""
@@ -229,6 +255,7 @@ main() {
             cleanup_docker_before
             install_dependencies
             build_app
+            rebuild_docker
             restart_service
             check_service
             show_final_info
@@ -252,6 +279,7 @@ main() {
             echo ""
 
             check_requirements
+            rebuild_docker
             restart_service
             check_service
             show_final_info
