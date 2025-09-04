@@ -983,26 +983,28 @@ export default function CampaignPage() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
             >
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setShowModal(true)}
-                disabled={campaigns.some(
-                  (campaign) => campaign.status === "active"
-                )}
-                className={`font-bold py-3 px-4 sm:px-6 rounded-lg transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base w-full lg:w-auto min-h-[44px] ${campaigns.some((campaign) => campaign.status === "active")
-                    ? "bg-white/10 text-gray-300 cursor-not-allowed"
-                    : "bg-europbots-secondary text-europbots-primary hover:bg-europbots-secondary/90"
-                  }`}
-                title={
-                  campaigns.some((campaign) => campaign.status === "active")
-                    ? "Il y a déjà une campagne active. Vous devez mettre en pause ou annuler la campagne actuelle avant d'en créer une nouvelle."
-                    : "Créer une nouvelle campagne"
-                }
-              >
-                <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                <span>Nouvelle Campagne</span>
-              </motion.button>
+              {campaigns.some((campaign) => campaign.status === "active") ? null : (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowModal(true)}
+                  disabled={campaigns.some(
+                    (campaign) => campaign.status === "active"
+                  )}
+                  className={`font-bold py-3 px-4 sm:px-6 rounded-lg transition-colors flex items-center justify-center space-x-2 text-sm sm:text-base w-full lg:w-auto min-h-[44px] ${campaigns.some((campaign) => campaign.status === "active")
+                      ? "bg-white/10 text-gray-300 cursor-not-allowed"
+                      : "bg-europbots-secondary text-europbots-primary hover:bg-europbots-secondary/90"
+                    }`}
+                  title={
+                    campaigns.some((campaign) => campaign.status === "active")
+                      ? "Il y a déjà une campagne active. Vous devez mettre en pause ou annuler la campagne actuelle avant d'en créer une nouvelle."
+                      : "Créer une nouvelle campagne"
+                  }
+                >
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span>Nouvelle Campagne</span>
+                </motion.button>
+              )}
             </motion.div>
           </div>
         </AnimatedCard>
@@ -1265,7 +1267,7 @@ export default function CampaignPage() {
                           >
                             <div className="space-y-3">
                               {/* Secteurs */}
-                              <div className="flex flex-col sm:flex-row sm:justify-between text-sm gap-1">
+                              <div className="flex sm:flex-col sm:flex-row justify-between text-sm gap-1">
                                 <span className="text-gray-300">Secteurs:</span>
                                 <span className="text-white font-medium text-right break-words">
                                   {cleanValue(campaign.sectors)}
@@ -1273,9 +1275,9 @@ export default function CampaignPage() {
                               </div>
 
                               {/* Régions cibles */}
-                              <div className="flex flex-col sm:flex-row sm:justify-between text-sm gap-1">
+                              <div className="flex sm:flex-col sm:flex-row justify-between text-sm gap-1">
                                 <span className="text-gray-300">Régions cibles:</span>
-                                <div className="text-white font-medium text-right sm:text-left w-full sm:w-auto">
+                                <div className="text-white font-medium text-right sm:text-left sm:w-full sm:w-auto">
                                   {(() => {
                                     // Parsear los códigos de países desde campaign.regions
                                     let countryCodes: string[] = [];
@@ -1304,7 +1306,7 @@ export default function CampaignPage() {
                               </div>
 
                               {/* Date de création */}
-                              <div className="flex flex-col sm:flex-row sm:justify-between text-sm gap-1">
+                              <div className="flex sm:flex-col sm:flex-row justify-between text-sm gap-1">
                                 <span className="text-gray-300">Date de création:</span>
                                 <span className="text-white text-xs text-right">
                                   {formatDate(campaign.created_at)}

@@ -242,7 +242,7 @@ export default function Menu() {
             {isLoading ? (
               <div className="h-9 w-9 rounded-full bg-gray-600 animate-pulse"></div>
             ) : user ? (
-              <div className="relative">
+              <div className="relative hidden md:block">
                 <Button
                   variant="ghost"
                   className="relative h-9 w-9 rounded-full hover:bg-white/10 transition-all duration-200"
@@ -361,6 +361,74 @@ export default function Menu() {
               className="lg:hidden overflow-hidden"
             >
               <div className="px-2 pt-2 pb-3 space-y-1 bg-europbots-primary/95 backdrop-blur-md border-t border-europbots-secondary/20">
+
+
+              {/* Opciones de usuario en móvil */}
+                {user && (
+                  <div>
+                    {/* Información del usuario */}
+                    <div className="pr-3 py-3">
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-10 w-10 ring-2 ring-europbots-secondary/30">
+                          {user.avatar_url ? (
+                            <AvatarImage
+                              src={user.avatar_url}
+                              alt={user.full_name || user.email}
+                              onError={(e) => {
+                                const target = e.target as HTMLImageElement;
+                                target.style.display = "none";
+                              }}
+                            />
+                          ) : null}
+                          <AvatarFallback className="bg-europbots-secondary text-europbots-primary text-sm font-medium">
+                            {getUserInitials(user)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                          {user.email && (
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-europbots-secondary/20 text-europbots-secondary capitalize mt-1">
+                                 {user.email}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Opciones de administración para admin */}
+                    {user.role === "admin" && (
+                      <div className="space-y-1">
+                        <Link
+                          href="/admin"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <motion.div
+                            whileTap={{ scale: 0.95 }}
+                            className="flex items-center px-3 py-3 rounded-xl text-base font-medium text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200"
+                          >
+                            <Shield className="mr-3 h-5 w-5" />
+                            Administration
+                          </motion.div>
+                        </Link>
+                        <Link
+                          href="/admin/menu-permissions"
+                          onClick={() => setIsMobileMenuOpen(false)}
+                        >
+                          <motion.div
+                            whileTap={{ scale: 0.95 }}
+                            className="flex items-center px-3 py-3 rounded-xl text-base font-medium text-gray-300 hover:text-white hover:bg-white/10 transition-all duration-200"
+                          >
+                            <Key className="mr-3 h-5 w-5" />
+                            Permisos del Menú
+                          </motion.div>
+                        </Link>
+                      </div>
+                    )}
+
+                  </div>
+                )}
+
+
+
                 {navItems.map((item, index) => {
                   const Icon = item.icon;
                   const isActive = pathname === item.href;
@@ -386,32 +454,34 @@ export default function Menu() {
                         >
                           <Icon className="mr-3 h-5 w-5" />
                           {item.label}
-                          {item.badge && (
-                            <motion.span
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              className="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center"
-                            >
-                              {item.badge}
-                            </motion.span>
-                          )}
                         </motion.div>
-
-
                       </Link>
-
-
-
-
-
-
-
-
                     </motion.div>
                   );
                 })}
 
-                {/* Botones de auth en móvil si no hay usuario */}
+
+                {/* Opciones de usuario en móvil */}
+                {user && (
+                  <div className="pt-3 border-t border-europbots-secondary/20 mt-3">
+                    {/* Botón de logout */}
+                    <button
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        handleLogout();
+                      }}
+                      className="w-full"
+                    >
+                      <motion.div
+                        whileTap={{ scale: 0.95 }}
+                        className="flex items-center px-3 py-3 rounded-xl text-base font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-200"
+                      >
+                        <LogOut className="mr-3 h-5 w-5" />
+                        Se Déconnecter
+                      </motion.div>
+                    </button>
+                  </div>
+                )}
 
               </div>
             </motion.div>

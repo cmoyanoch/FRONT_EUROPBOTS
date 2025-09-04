@@ -53,7 +53,7 @@ export default function Accordion({
         }`}
         aria-labelledby={`accordion-heading-${id}`}
       >
-        <div className="p-2">
+        <div className="px-4 py-8">
           {children}
         </div>
       </div>
