@@ -300,7 +300,7 @@ export default function MessagesPage() {
 
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header con título y botón */}
-        <AnimatedCard className="mb-8" hover={false}>
+        <AnimatedCard className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-4 sm:p-6 mb-6 sm:mb-8" delay={0.1}>
           <div className="flex flex-col sm:flex-row items-center justify-between">
             <div>
               <motion.h1
@@ -602,16 +602,16 @@ export default function MessagesPage() {
             <table className="w-full table-fixed">
               <thead className="bg-white/5">
                 <tr>
-                  <th className="w-1/2 px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider hidden sm:block">
+                  <th className="w-3/4 px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider hidden sm:block">
                     Modèle
                   </th>
-                  <th className="w-1/5 sm:w-1/5 px-2 sm:px-6 py-4 sm:text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="w-1/5 px-2 sm:px-6 py-4 sm:text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Secteur
                   </th>
                   <th className="w-1/3 sm:w-1/5 px-1 sm:px-6 py-4 sm:text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Type
                   </th>
-                  <th className="w-1/6 sm:w-1/3 px-2 sm:px-6 py-4 sm:text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="w-1/6 sm:w-1/5 px-2 sm:px-6 py-4 sm:text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -641,9 +641,9 @@ export default function MessagesPage() {
                       transition={{ delay: index * 0.1 }}
                       whileHover={{ x: 4, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
                     >
-                      <td className="sm:w-2/5 px-2 sm:px-6 py-4 hidden sm:block">
+                      <td className="w-3/4 px-2 sm:px-6 py-4 hidden sm:block">
                         <div className="flex items-center">
-                          <div className="bg-europbots-secondary/20 p-2 rounded-lg mr-3 flex-shrink-0 hidden sm:block">
+                          <div className="bg-europbots-secondary/20 p-2 rounded-lg mr-3 flex-shrink-0">
                             <FileText className="w-5 h-5 text-europbots-secondary" />
                           </div>
                           <div className="min-w-0 flex-1">

@@ -8,12 +8,12 @@ import { useNotification } from "@/contexts/NotificationContext";
 import { Lead } from "@/lib/database";
 import { motion } from "framer-motion";
 import {
-    Building,
-    Mail,
-    MapPin,
-    Phone,
-    Search,
-    Users
+  Building,
+  Mail,
+  MapPin,
+  Phone,
+  Search,
+  Users
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -174,29 +174,6 @@ export default function LeadsPage() {
 
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
-        <AnimatedCard className="mb-8" hover={false}>
-          <div className="flex items-center justify-between">
-            <div>
-              <motion.h1
-                className="text-3xl lg:text-4xl font-bold text-white mb-2"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                Gestion des Leads
-              </motion.h1>
-              <motion.p
-                className="text-gray-300 text-lg"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.1 }}
-              >
-                Administrez et suivez vos leads potentiels
-              </motion.p>
-            </div>
-          </div>
-        </AnimatedCard>
-
         {/* Stats Cards - Solo Total Leads */}
         <div className="grid grid-cols-1 md:grid-cols-1 gap-6 mb-8">
           {loading ? (
@@ -205,16 +182,34 @@ export default function LeadsPage() {
             <AnimatedCard className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
               <div className="flex items-center justify-between">
                 <div>
+                  <motion.h1
+                    className="text-3xl lg:text-4xl font-bold text-white mb-2"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    Gestion des Leads
+                  </motion.h1>
+                  <motion.p
+                    className="text-gray-300 text-lg"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                  >
+                    Administrez et suivez vos leads potentiels
+                  </motion.p>
+                </div>
+                <div>
                   <p className="text-sm font-medium text-gray-300">
                     Totaliser les prospects
                   </p>
                   <p className="text-2xl font-bold text-white mt-1">
-                    {stats.total.toLocaleString()}
+                    <div className="bg-blue-500/20 p-3 rounded-lg flex items-center justify-around "><Users className="w-6 h-6 text-blue-400" /> {stats.total.toLocaleString()}</div>
+
                   </p>
+
                 </div>
-                <div className="bg-blue-500/20 p-3 rounded-lg">
-                  <Users className="w-6 h-6 text-blue-400" />
-                </div>
+
               </div>
             </AnimatedCard>
           )}
@@ -331,14 +326,13 @@ export default function LeadsPage() {
                       <div className="flex items-center space-x-2">
                         <div className="w-16 bg-gray-700 rounded-full h-1.5">
                           <div
-                            className={`h-1.5 rounded-full transition-all duration-300 ${
-                              lead.process?.toUpperCase() === 'EXTRACTED' ? 'bg-red-500' :
+                            className={`h-1.5 rounded-full transition-all duration-300 ${lead.process?.toUpperCase() === 'EXTRACTED' ? 'bg-red-500' :
                               lead.process?.toUpperCase() === 'ENRICHED' ? 'bg-orange-500' :
-                              lead.process?.toUpperCase() === 'PROFILE VISITOR' ? 'bg-yellow-500' :
-                              lead.process?.toUpperCase() === 'AUTOCONNECT' ? 'bg-blue-500' :
-                              lead.process?.toUpperCase() === 'MESSAGE SENDER' ? 'bg-green-500' :
-                              'bg-gray-500'
-                            }`}
+                                lead.process?.toUpperCase() === 'PROFILE VISITOR' ? 'bg-yellow-500' :
+                                  lead.process?.toUpperCase() === 'AUTOCONNECT' ? 'bg-blue-500' :
+                                    lead.process?.toUpperCase() === 'MESSAGE SENDER' ? 'bg-green-500' :
+                                      'bg-gray-500'
+                              }`}
                             style={{
                               width: `${getProcessProgress(lead.process || "")}%`
                             }}
@@ -389,13 +383,13 @@ export default function LeadsPage() {
                   </tr>
                 ) : (
                   sortedLeads.map((lead) => {
-                  return (
+                    return (
                       <tr
                         key={lead.id}
                         className="hover:bg-white/5 transition-colors"
                       >
                         <td className="px-6 py-4">
-                        <div className="flex items-center">
+                          <div className="flex items-center">
                             <div className="bg-europbots-secondary/20 p-2 rounded-lg mr-3 flex-shrink-0">
                               <Building className="w-5 h-5 text-europbots-secondary" />
                             </div>
@@ -455,14 +449,13 @@ export default function LeadsPage() {
                           <div className="flex items-center space-x-2">
                             <div className="w-full bg-gray-700 rounded-full h-2 flex-1">
                               <div
-                                className={`h-2 rounded-full transition-all duration-300 ${
-                                  lead.process?.toUpperCase() === 'EXTRACTED' ? 'bg-red-500' :
+                                className={`h-2 rounded-full transition-all duration-300 ${lead.process?.toUpperCase() === 'EXTRACTED' ? 'bg-red-500' :
                                   lead.process?.toUpperCase() === 'ENRICHED' ? 'bg-orange-500' :
-                                  lead.process?.toUpperCase() === 'PROFILE VISITOR' ? 'bg-yellow-500' :
-                                  lead.process?.toUpperCase() === 'AUTOCONNECT' ? 'bg-blue-500' :
-                                  lead.process?.toUpperCase() === 'MESSAGE SENDER' ? 'bg-green-500' :
-                                  'bg-gray-500'
-                                }`}
+                                    lead.process?.toUpperCase() === 'PROFILE VISITOR' ? 'bg-yellow-500' :
+                                      lead.process?.toUpperCase() === 'AUTOCONNECT' ? 'bg-blue-500' :
+                                        lead.process?.toUpperCase() === 'MESSAGE SENDER' ? 'bg-green-500' :
+                                          'bg-gray-500'
+                                  }`}
                                 style={{
                                   width: `${getProcessProgress(lead.process || "")}%`
                                 }}
