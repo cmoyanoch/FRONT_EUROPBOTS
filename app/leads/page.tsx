@@ -180,10 +180,10 @@ export default function LeadsPage() {
             <StatsCardSkeleton />
           ) : (
             <AnimatedCard className="bg-white/10 backdrop-blur-sm rounded-xl border border-europbots-secondary/20 p-6">
-              <div className="flex items-center justify-between">
+              <div className="hidden sm:flex items-center justify-between">
                 <div>
                   <motion.h1
-                    className="text-3xl lg:text-4xl font-bold text-white mb-2"
+                    className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2"
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
@@ -191,7 +191,7 @@ export default function LeadsPage() {
                     Gestion des Leads
                   </motion.h1>
                   <motion.p
-                    className="text-gray-300 text-lg"
+                    className="text-gray-300 text-sm sm:text-lg"
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.1 }}
@@ -200,7 +200,7 @@ export default function LeadsPage() {
                   </motion.p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-300">
+                  <p className="text-xs sm:text-sm font-medium text-gray-300">
                     Totaliser les prospects
                   </p>
                   <p className="text-2xl font-bold text-white mt-1">
@@ -209,7 +209,31 @@ export default function LeadsPage() {
                   </p>
 
                 </div>
-
+              </div>
+              <div className="flex flex-col sm:hidden items-center justify-between">
+                <div>
+                  <motion.h1
+                    className="text-2xl font-bold text-white mb-2"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    Gestion des Leads
+                  </motion.h1>
+                </div>
+                <div className="flex items-center justify-between">
+                  <motion.p
+                    className="text-gray-300 text-sm"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                  >
+                    Administrez et suivez vos leads potentiels
+                  </motion.p>
+                  <div className="bg-blue-500/20 px-2 py-1 rounded-lg flex items-center justify-around "><Users className="w-6 h-6 text-blue-400" />
+                    <span className="text-2xl font-bold text-white ml-2">{stats.total.toLocaleString()}</span>
+                  </div>
+                </div>
               </div>
             </AnimatedCard>
           )}
@@ -234,7 +258,7 @@ export default function LeadsPage() {
             </div>
 
             {/* Process Filter */}
-            <div className="relative">
+            <div className="relative hidden sm:block">
               <select
                 value={selectedProcess}
                 onChange={(e) => setSelectedProcess(e.target.value)}

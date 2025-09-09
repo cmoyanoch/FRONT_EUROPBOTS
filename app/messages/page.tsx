@@ -33,6 +33,19 @@ interface Sector {
   order_index: number;
 }
 
+
+// Función helper para quitar "LinkedIn" del texto en mobile
+const getDisplayType = (type: string) => {
+  return type.replace(/^LinkedIn\s+/, "");
+};
+
+// Función helper para truncar texto por cantidad de caracteres
+const truncateText = (text: string, maxLength: number) => {
+  if (text.length <= maxLength) return text;
+  return text.substring(0, maxLength) + "..."
+};
+
+
 const TEMPLATE_TYPES = ["LinkedIn Autoconnect", "LinkedIn Message Sender"];
 
 export default function MessagesPage() {
@@ -304,7 +317,7 @@ export default function MessagesPage() {
           <div className="flex flex-col sm:flex-row items-center justify-between">
             <div>
               <motion.h1
-                className="text-3xl lg:text-4xl font-bold text-white mb-2"
+                className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2"
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
@@ -312,7 +325,7 @@ export default function MessagesPage() {
                 Modèles de messages
               </motion.h1>
               <motion.p
-                className="text-gray-300 text-lg"
+                className="text-gray-300 text-sm sm:text-lg"
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.1 }}
@@ -320,7 +333,7 @@ export default function MessagesPage() {
                 Gérez vos modèles de messages pour les campagnes LinkedIn
               </motion.p>
               <motion.p
-                className="text-sm text-gray-400 mt-3 sm:mt-1 mb-8 sm:mb-0"
+                className="text-xs sm:text-sm text-gray-400 mt-3 sm:mt-1 mb-8 sm:mb-0"
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
@@ -605,13 +618,13 @@ export default function MessagesPage() {
                   <th className="w-3/4 px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider hidden sm:block">
                     Modèle
                   </th>
-                  <th className="w-1/5 px-2 sm:px-6 py-4 sm:text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="w-1/3 sm:w-1/5 px-2 sm:px-6 py-4 sm:text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Secteur
                   </th>
                   <th className="w-1/3 sm:w-1/5 px-1 sm:px-6 py-4 sm:text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Type
                   </th>
-                  <th className="w-1/6 sm:w-1/5 px-2 sm:px-6 py-4 sm:text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="w-1/5 sm:w-1/6 sm:w-1/5 px-2 sm:px-6 py-4 sm:text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -641,7 +654,7 @@ export default function MessagesPage() {
                       transition={{ delay: index * 0.1 }}
                       whileHover={{ x: 4, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
                     >
-                      <td className="w-3/4 px-2 sm:px-6 py-4 hidden sm:block">
+                      <td className="sm:w-3/4 px-2 sm:px-6 py-4 hidden sm:block">
                         <div className="flex items-center">
                           <div className="bg-europbots-secondary/20 p-2 rounded-lg mr-3 flex-shrink-0">
                             <FileText className="w-5 h-5 text-europbots-secondary" />
@@ -657,13 +670,13 @@ export default function MessagesPage() {
                         </div>
                       </td>
                       <td className="sm:w-1/5 px-1 sm:px-6 py-4">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 truncate">
-                          {template.sector}
+                        <span className="inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 truncate">
+                          <span className="hidden sm:inline">{template.sector}</span><span className="sm:hidden">{truncateText(template.sector, 16)}</span>
                         </span>
                       </td>
                       <td className="sm:w-1/5 px-1 sm:px-6 py-4 text-center md:text-justify">
                         <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium truncate ${
+                          className={`inline-flex items-center px-2 sm:px-2.5 py-0.5 rounded-full text-xs font-medium truncate ${
                             template.type === "LinkedIn Autoconnect"
                               ? "bg-green-100 text-green-800"
                               : template.type === "LinkedIn Message Sender"
@@ -671,7 +684,7 @@ export default function MessagesPage() {
                               : "bg-gray-100 text-gray-800"
                           }`}
                         >
-                          {template.type}
+                          <span className="hidden sm:inline">{template.type}</span><span className="sm:hidden">{getDisplayType(template.type)}</span>
                         </span>
                       </td>
                       <td className="sm:w-1/5 px-2 sm:px-6 py-4 text-right text-sm font-medium">
