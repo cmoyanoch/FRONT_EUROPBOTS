@@ -602,7 +602,7 @@ export default function MessagesPage() {
             <table className="w-full table-fixed">
               <thead className="bg-white/5">
                 <tr>
-                  <th className="w-2/5 px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider hidden sm:block">
+                  <th className="w-1/2 px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider hidden sm:block">
                     Modèle
                   </th>
                   <th className="w-1/5 sm:w-1/5 px-2 sm:px-6 py-4 sm:text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
