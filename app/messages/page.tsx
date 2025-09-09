@@ -5,13 +5,13 @@ import AnimatedCard from "@/components/ui/animated-card";
 import { useToast } from "@/components/ui/toast-provider";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-    Edit,
-    Eye,
-    FileText,
-    Plus,
-    Save,
-    Trash2,
-    X
+  Edit,
+  Eye,
+  FileText,
+  Plus,
+  Save,
+  Trash2,
+  X
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -301,7 +301,7 @@ export default function MessagesPage() {
       <main className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header con título y botón */}
         <AnimatedCard className="mb-8" hover={false}>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-center justify-between">
             <div>
               <motion.h1
                 className="text-3xl lg:text-4xl font-bold text-white mb-2"
@@ -320,7 +320,7 @@ export default function MessagesPage() {
                 Gérez vos modèles de messages pour les campagnes LinkedIn
               </motion.p>
               <motion.p
-                className="text-sm text-gray-400 mt-1"
+                className="text-sm text-gray-400 mt-3 sm:mt-1 mb-8 sm:mb-0"
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: 0.2 }}
@@ -602,16 +602,16 @@ export default function MessagesPage() {
             <table className="w-full table-fixed">
               <thead className="bg-white/5">
                 <tr>
-                  <th className="w-2/5 px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="w-2/5 px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider hidden sm:block">
                     Modèle
                   </th>
-                  <th className="w-1/5 px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="w-1/5 sm:w-1/5 px-2 sm:px-6 py-4 sm:text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Secteur
                   </th>
-                  <th className="w-1/5 px-6 py-4 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="w-1/3 sm:w-1/5 px-1 sm:px-6 py-4 sm:text-left text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Type
                   </th>
-                  <th className="w-1/5 px-6 py-4 text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
+                  <th className="w-1/6 sm:w-1/3 px-2 sm:px-6 py-4 sm:text-right text-xs font-medium text-gray-300 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
@@ -641,9 +641,9 @@ export default function MessagesPage() {
                       transition={{ delay: index * 0.1 }}
                       whileHover={{ x: 4, backgroundColor: "rgba(255, 255, 255, 0.1)" }}
                     >
-                      <td className="w-2/5 px-6 py-4">
+                      <td className="sm:w-2/5 px-2 sm:px-6 py-4 hidden sm:block">
                         <div className="flex items-center">
-                          <div className="bg-europbots-secondary/20 p-2 rounded-lg mr-3 flex-shrink-0">
+                          <div className="bg-europbots-secondary/20 p-2 rounded-lg mr-3 flex-shrink-0 hidden sm:block">
                             <FileText className="w-5 h-5 text-europbots-secondary" />
                           </div>
                           <div className="min-w-0 flex-1">
@@ -656,12 +656,12 @@ export default function MessagesPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="w-1/5 px-6 py-4">
+                      <td className="sm:w-1/5 px-1 sm:px-6 py-4">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 truncate">
                           {template.sector}
                         </span>
                       </td>
-                      <td className="w-1/5 px-6 py-4">
+                      <td className="sm:w-1/5 px-1 sm:px-6 py-4 text-center md:text-justify">
                         <span
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium truncate ${
                             template.type === "LinkedIn Autoconnect"
@@ -674,7 +674,7 @@ export default function MessagesPage() {
                           {template.type}
                         </span>
                       </td>
-                      <td className="w-1/5 px-6 py-4 text-right text-sm font-medium">
+                      <td className="sm:w-1/5 px-2 sm:px-6 py-4 text-right text-sm font-medium">
                         <div className="flex items-center justify-end space-x-2">
                           <button
                             onClick={() => viewTemplate(template)}
@@ -690,7 +690,7 @@ export default function MessagesPage() {
                           </button>
                           <button
                             onClick={() => deleteTemplate(template.id)}
-                            className="p-2 bg-red-500/20 rounded-lg hover:bg-red-500/30 transition-colors"
+                            className="p-2 bg-red-500/20 rounded-lg hover:bg-red-500/30 transition-colors hidden sm:block"
                           >
                             <Trash2 className="text-red-400" />
                           </button>

@@ -1277,7 +1277,7 @@ export default function CampaignPage() {
                               {/* Régions cibles */}
                               <div className="flex sm:flex-col sm:flex-row justify-between text-sm gap-1">
                                 <span className="text-gray-300">Régions cibles:</span>
-                                <div className="text-white font-medium text-right sm:text-left sm:w-full sm:w-auto">
+                                <div className="text-white font-medium text-right sm:w-full sm:w-auto">
                                   {(() => {
                                     // Parsear los códigos de países desde campaign.regions
                                     let countryCodes: string[] = [];
