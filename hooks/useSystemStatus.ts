@@ -30,6 +30,24 @@ export function useSystemStatus() {
   });
   const [isLoading, setIsLoading] = useState(true);
 
+  // Cargar estado cached al inicializar
+  useEffect(() => {
+    const cachedStatus = localStorage.getItem('phantombuster-system-status');
+    if (cachedStatus) {
+      try {
+        const parsed = JSON.parse(cachedStatus);
+        // Solo usar cache si es reciente (menos de 2 minutos)
+        const cacheAge = Date.now() - new Date(parsed.lastCheck).getTime();
+        if (cacheAge < 120000) { // 2 minutos
+          setStatus(parsed);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.warn('Error parsing cached status:', error);
+      }
+    }
+  }, []);
+
   const fetchSystemStatus = async () => {
     try {
       setIsLoading(true);
@@ -44,6 +62,8 @@ export function useSystemStatus() {
         if (data.success) {
           console.log('🔍 System Status Data:', data.data);
           setStatus(data.data);
+          // Guardar en cache para próxima carga
+          localStorage.setItem('phantombuster-system-status', JSON.stringify(data.data));
         } else {
           console.error('❌ System Status Error:', data);
           // Si hay error, establecer estado offline

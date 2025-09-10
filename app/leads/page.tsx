@@ -200,10 +200,10 @@ export default function LeadsPage() {
                   </motion.p>
                 </div>
                 <div>
-                  <p className="text-xs sm:text-sm font-medium text-gray-300">
+                  <p className="text-xs sm:text-sm font-medium text-gray-300 p-2">
                     Totaliser les prospects
                   </p>
-                  <p className="text-2xl font-bold text-white mt-1">
+                  <p className="text-2xl font-bold text-white">
                     <div className="bg-blue-500/20 p-3 rounded-lg flex items-center justify-around "><Users className="w-6 h-6 text-blue-400" /> {stats.total.toLocaleString()}</div>
 
                   </p>

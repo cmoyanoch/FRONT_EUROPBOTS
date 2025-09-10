@@ -14,10 +14,21 @@ export function PhantombusterAlerts() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center space-x-2 px-3 py-2">
-        <div className="w-3 h-3 bg-gray-400 rounded-full animate-pulse"></div>
-        <span className="text-xs text-gray-400">Vérification de Phantombuster...</span>
-      </div>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="group relative px-3 py-2 text-sm font-medium text-gray-300 cursor-default transition-all duration-300 overflow-hidden"
+      >
+        <div className="flex items-center transition-all transform translate-x-12 group-hover:-translate-x-6">
+          {/* Skeleton logo - mantiene dimensiones exactas */}
+          <div className="w-5 h-5 sm:w-6 sm:h-6 bg-gray-600 rounded-full animate-pulse transition-all duration-300" />
+
+          {/* Skeleton text - adapta a lógica hover */}
+          <div className="opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap">
+            <div className="h-4 w-20 bg-gray-600 rounded animate-pulse" />
+          </div>
+        </div>
+      </Button>
     );
   }
 
@@ -40,37 +51,37 @@ export function PhantombusterAlerts() {
         variant="ghost"
         size="sm"
         onClick={handleTogglePopup}
-        className={`relative px-3 py-2 text-sm font-medium transition-all duration-200 ${
-          hasErrors
+        className={`group relative px-3 py-2 text-sm font-medium transition-all overflow-hidden ${hasErrors
             ? 'text-gray-300 hover:text-white hover:bg-gray-500/10 cursor-pointer'
             : 'text-gray-300 cursor-default'
-        }`}
-      >
-        {/* Logo de Phantombuster */}
-        <img
-          src="https://phantombuster.imgix.net/assets/images/Phantombuster+logo.png?h=256"
-          alt="Phantombuster"
-          className={`mr-2 w-5 h-5 sm:w-6 sm:h-6 object-contain ${
-            status.isOnline
-              ? 'phantombuster-logo-online'
-              : status.criticalErrors > 0
-                ? 'phantombuster-logo-error'
-                : status.totalErrors > 0
-                  ? 'phantombuster-logo-warning'
-                  : 'phantombuster-logo-offline'
           }`}
-        />
+      >
+        <div className="flex items-center transition-all transform translate-x-12 group-hover:-translate-x-6">
+          {/* Logo de Phantombuster */}
+          <img
+            src="https://phantombuster.imgix.net/assets/images/Phantombuster+logo.png?h=256"
+            alt="Phantombuster"
+            className={`w-5 h-5 sm:w-6 sm:h-6 object-contain transition-all ${status.isOnline
+                ? 'phantombuster-logo-online online animate-pulse'
+                : status.criticalErrors > 0
+                  ? 'duration-300 phantombuster-logo-error'
+                  : status.totalErrors > 0
+                    ? 'phantombuster-logo-warning animate-[pulse_2.5s_ease-in-out_infinite]'
+                    : 'phantombuster-logo-offline opacity-60'
+              }`}
+          />
 
-        <span className="hidden xl:inline">
-          {status.isOnline
-            ? 'Phantombuster Connecté'
-            : status.totalErrors > 0
-              ? status.errors.some(error => error.type === 'credits_exhausted')
-                ? 'Crédits Épuisés'
-                : `${status.totalErrors} Erreur${status.totalErrors > 1 ? 's' : ''}`
-              : 'Phantombuster Déconnecté'
-          }
-        </span>
+          <span className="ml-2 opacity-0 group-hover:opacity-100 transition-all duration-300 whitespace-nowrap">
+            {status.isOnline
+              ? 'Connecté'
+              : status.totalErrors > 0
+                ? status.errors.some(error => error.type === 'credits_exhausted')
+                  ? 'Crédits Épuisés'
+                  : `${status.totalErrors} Erreur${status.totalErrors > 1 ? 's' : ''}`
+                : 'Déconnecté'
+            }
+          </span>
+        </div>
       </Button>
 
       {/* Panel de alertas expandido - solo se muestra si hay errores */}
@@ -126,17 +137,16 @@ export function PhantombusterAlerts() {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.1 }}
-                      className={`p-3 rounded-lg border-l-4 ${
-                        error.severity === 'critical'
+                      className={`p-3 rounded-lg border-l-4 ${error.severity === 'critical'
                           ? 'bg-red-500/10 border-red-500'
                           : error.severity === 'high'
-                          ? 'bg-orange-500/10 border-orange-500'
-                          : error.severity === 'warning'
-                          ? 'bg-yellow-500/10 border-yellow-500'
-                          : error.severity === 'info'
-                          ? 'bg-blue-500/10 border-blue-500'
-                          : 'bg-yellow-500/10 border-yellow-500'
-                      }`}
+                            ? 'bg-orange-500/10 border-orange-500'
+                            : error.severity === 'warning'
+                              ? 'bg-yellow-500/10 border-yellow-500'
+                              : error.severity === 'info'
+                                ? 'bg-blue-500/10 border-blue-500'
+                                : 'bg-yellow-500/10 border-yellow-500'
+                        }`}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
