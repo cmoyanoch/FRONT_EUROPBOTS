@@ -1212,24 +1212,22 @@ export default function CampaignPage() {
                             <div>
                               <p className="text-lg font-semibold text-white">
                                 {(() => {
-                                  // NUEVA LÓGICA: Todos los leads excepto EXTRACTED
-                                  const totalLeads = leadsCounts[campaign.campaign_id] || 0;
-                                  const extractedCount = processStats[campaign.campaign_id]?.find(
-                                    stat => stat.process_name === 'EXTRACTED' || stat.process === 'EXTRACTED'
-                                  )?.count || 0;
-                                  const enrichedCount = totalLeads - extractedCount;
-                                  return enrichedCount > 0 ? enrichedCount : 0;
+                                  // LÓGICA CORRECTA: ENRICHED = process_name != 'EXTRACTED'
+                                  const campaignStats = processStats[campaign.campaign_id] || [];
+                                  const enrichedCount = campaignStats
+                                    .filter(stat => stat.process_name !== 'EXTRACTED' && stat.process !== 'EXTRACTED')
+                                    .reduce((total, stat) => total + stat.count, 0);
+                                  return enrichedCount;
                                 })()}
                               </p>
                               <p className="text-xs text-gray-400">
                                 {(() => {
                                   const totalLeads = leadsCounts[campaign.campaign_id] || 0;
-                                  const extractedCount = processStats[campaign.campaign_id]?.find(
-                                    stat => stat.process_name === 'EXTRACTED' || stat.process === 'EXTRACTED'
-                                  )?.count || 0;
-                                  const enrichedCount = totalLeads - extractedCount;
-                                  const validEnrichedCount = enrichedCount > 0 ? enrichedCount : 0;
-                                  const percentage = totalLeads > 0 ? ((validEnrichedCount / totalLeads) * 100).toFixed(1) : '0.0';
+                                  const campaignStats = processStats[campaign.campaign_id] || [];
+                                  const enrichedCount = campaignStats
+                                    .filter(stat => stat.process_name !== 'EXTRACTED' && stat.process !== 'EXTRACTED')
+                                    .reduce((total, stat) => total + stat.count, 0);
+                                  const percentage = totalLeads > 0 ? ((enrichedCount / totalLeads) * 100).toFixed(1) : '0.0';
                                   return `de ${totalLeads} (${percentage}%)`;
                                 })()}
                               </p>
