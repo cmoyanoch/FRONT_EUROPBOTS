@@ -10,6 +10,7 @@ export async function GET() {
         COUNT(*) as leads_count
       FROM webapp.leads
       WHERE campaigns IS NOT NULL
+        AND company != 'N/A'
       GROUP BY campaigns
       ORDER BY campaigns
     `
