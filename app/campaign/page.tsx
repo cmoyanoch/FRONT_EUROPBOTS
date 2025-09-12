@@ -1246,20 +1246,30 @@ export default function CampaignPage() {
                             <div className="mb-2">
                               <p className="text-lg font-semibold text-white">
                                 {(() => {
-                                  const profileVisitorCount = processStats[campaign.campaign_id]?.find(
+                                  // NUEVA LÓGICA: Suma de PROFILE VISITOR + AUTOCONNECT
+                                  const campaignStats = processStats[campaign.campaign_id] || [];
+                                  const profileVisitorCount = campaignStats.find(
                                     stat => stat.process_name === 'PROFILE VISITOR' || stat.process === 'PROFILE VISITOR'
                                   )?.count || 0;
-                                  return profileVisitorCount;
+                                  const autoconnectCount = campaignStats.find(
+                                    stat => stat.process_name === 'AUTOCONNECT' || stat.process === 'AUTOCONNECT'
+                                  )?.count || 0;
+                                  return profileVisitorCount + autoconnectCount;
                                 })()}
                               </p>
                               <p className="text-xs text-gray-400">
                                 {(() => {
                                   const totalLeads = leadsCounts[campaign.campaign_id] || 0;
-                                  const profileVisitorCount = processStats[campaign.campaign_id]?.find(
+                                  const campaignStats = processStats[campaign.campaign_id] || [];
+                                  const profileVisitorCount = campaignStats.find(
                                     stat => stat.process_name === 'PROFILE VISITOR' || stat.process === 'PROFILE VISITOR'
                                   )?.count || 0;
-                                  const percentage = totalLeads > 0 ? ((profileVisitorCount / totalLeads) * 100).toFixed(1) : '0.0';
-                                  return `sur ${totalLeads} leads`;
+                                  const autoconnectCount = campaignStats.find(
+                                    stat => stat.process_name === 'AUTOCONNECT' || stat.process === 'AUTOCONNECT'
+                                  )?.count || 0;
+                                  const combinedCount = profileVisitorCount + autoconnectCount;
+                                  const percentage = totalLeads > 0 ? ((combinedCount / totalLeads) * 100).toFixed(1) : '0.0';
+                                  return `sur ${totalLeads} leads (${percentage}%)`;
                                 })()}
                               </p>
                             </div>
