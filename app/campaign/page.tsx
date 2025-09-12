@@ -1212,19 +1212,24 @@ export default function CampaignPage() {
                             <div>
                               <p className="text-lg font-semibold text-white">
                                 {(() => {
-                                  const enrichedCount = processStats[campaign.campaign_id]?.find(
-                                    stat => stat.process_name === 'ENRICHED' || stat.process === 'ENRICHED'
+                                  // NUEVA LÓGICA: Todos los leads excepto EXTRACTED
+                                  const totalLeads = leadsCounts[campaign.campaign_id] || 0;
+                                  const extractedCount = processStats[campaign.campaign_id]?.find(
+                                    stat => stat.process_name === 'EXTRACTED' || stat.process === 'EXTRACTED'
                                   )?.count || 0;
-                                  return enrichedCount;
+                                  const enrichedCount = totalLeads - extractedCount;
+                                  return enrichedCount > 0 ? enrichedCount : 0;
                                 })()}
                               </p>
                               <p className="text-xs text-gray-400">
                                 {(() => {
                                   const totalLeads = leadsCounts[campaign.campaign_id] || 0;
-                                  const enrichedCount = processStats[campaign.campaign_id]?.find(
-                                    stat => stat.process_name === 'ENRICHED' || stat.process === 'ENRICHED'
+                                  const extractedCount = processStats[campaign.campaign_id]?.find(
+                                    stat => stat.process_name === 'EXTRACTED' || stat.process === 'EXTRACTED'
                                   )?.count || 0;
-                                  const percentage = totalLeads > 0 ? ((enrichedCount / totalLeads) * 100).toFixed(1) : '0.0';
+                                  const enrichedCount = totalLeads - extractedCount;
+                                  const validEnrichedCount = enrichedCount > 0 ? enrichedCount : 0;
+                                  const percentage = totalLeads > 0 ? ((validEnrichedCount / totalLeads) * 100).toFixed(1) : '0.0';
                                   return `de ${totalLeads} (${percentage}%)`;
                                 })()}
                               </p>
@@ -1262,7 +1267,7 @@ export default function CampaignPage() {
                             {/* Rate limits */}
                             {rateLimits && !rateLimitsLoading && (
                               <div className="pt-2 border-t border-gray-600">
-                                <div className="flex justify-between items-center mb-1">
+                                <div className="flex justify-between items-center mb-1 flex-col">
                                   <span className="text-xs text-gray-300">Limite quotidienne:</span>
                                   <span className={`text-xs font-medium ${rateLimits.profileVisitor.exceeded ? 'text-red-400' : 'text-green-400'}`}>
                                     {rateLimits.profileVisitor.remaining} restants
@@ -1309,7 +1314,7 @@ export default function CampaignPage() {
                             {/* Rate limits */}
                             {rateLimits && !rateLimitsLoading && (
                               <div className="pt-2 border-t border-gray-600">
-                                <div className="flex justify-between items-center mb-1">
+                                <div className="flex justify-between items-center mb-1 flex-col">
                                   <span className="text-xs text-gray-300">Limite quotidienne:</span>
                                   <span className={`text-xs font-medium ${rateLimits.autoconnect.exceeded ? 'text-red-400' : 'text-green-400'}`}>
                                     {rateLimits.autoconnect.remaining} restants
@@ -1356,7 +1361,7 @@ export default function CampaignPage() {
                             {/* Rate limits */}
                             {rateLimits && !rateLimitsLoading && (
                               <div className="pt-2 border-t border-gray-600">
-                                <div className="flex justify-between items-center mb-1">
+                                <div className="flex justify-between items-center mb-1 flex-col">
                                   <span className="text-xs text-gray-300">Limite quotidienne:</span>
                                   <span className={`text-xs font-medium ${rateLimits.messageSender.exceeded ? 'text-red-400' : 'text-green-400'}`}>
                                     {rateLimits.messageSender.remaining} restants
