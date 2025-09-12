@@ -6,6 +6,7 @@ import RegionDisplay from "@/components/region-display";
 import Accordion from "@/components/ui/accordion";
 import AnimatedCard from "@/components/ui/animated-card";
 import { useToast } from "@/components/ui/toast-provider";
+import { useRateLimits } from "@/hooks/useRateLimits";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ChevronDown,
@@ -255,6 +256,9 @@ export default function CampaignPage() {
 
   // Hook para notificaciones
   const { showSuccess, showError, showWarning, showInfo } = useToast();
+
+  // Hook para límites de rate
+  const { rateLimits, isLoading: rateLimitsLoading, error: rateLimitsError } = useRateLimits();
 
   // Función para verificar si un grupo de roles tiene elementos seleccionados
   const hasSelectedRolesInGroup = (profileGroup: any) => {
@@ -1187,74 +1191,185 @@ export default function CampaignPage() {
                           </div>
                         </div>
 
-                        {/* Grid de estadísticas de proceso */}
+                        {/* Grid de estadísticas de proceso con límites de rate - UX Optimizada */}
                         <div className="grid grid-cols-4 grid-cols gap-2 sm:gap-4 mb-4">
                           {/* LEADS */}
-                          <div className="text-center p-2 sm:p-2 bg-white/5 rounded-lg">
-                            <p className="process-stat-title font-bold text-white">LEADS</p>
-                            <span className="text-white font-medium">
-                              {leadsCounts[campaign.campaign_id] || 0}
-                            </span>
+                          <div className="text-center py-3 px-2 bg-white/5 rounded-lg">
+                            <div className="flex items-center justify-center mb-2">
+                              <p className="process-stat-title font-bold text-white text-xs">LEADS</p>
+                            </div>
+                            <div>
+                              <p className="text-lg font-semibold text-white">{leadsCounts[campaign.campaign_id] || 0}</p>
+                              <p className="text-xs text-gray-400">leads totaux</p>
+                            </div>
                           </div>
 
                           {/* ENRICHED */}
-                          <div className="text-center p-2 sm:p-2 bg-white/5 rounded-lg">
-                            <p className="process-stat-title font-bold text-white">ENRICHED</p>
-                            <p className="text-xs text-gray-300">
-                              {(() => {
-                                const totalLeads = leadsCounts[campaign.campaign_id] || 0;
-                                const enrichedCount = processStats[campaign.campaign_id]?.find(
-                                  stat => stat.process_name === 'ENRICHED' || stat.process === 'ENRICHED'
-                                )?.count || 0;
-                                const percentage = totalLeads > 0 ? ((enrichedCount / totalLeads) * 100).toFixed(1) : '0.0';
-                                return `${enrichedCount} (${percentage}%)`;
-                              })()}
-                            </p>
+                          <div className="text-center py-3 px-2 bg-white/5 rounded-lg">
+                            <div className="flex items-center justify-center mb-2">
+                              <p className="process-stat-title font-bold text-white text-xs">ENRICHED</p>
+                            </div>
+                            <div>
+                              <p className="text-lg font-semibold text-white">
+                                {(() => {
+                                  const enrichedCount = processStats[campaign.campaign_id]?.find(
+                                    stat => stat.process_name === 'ENRICHED' || stat.process === 'ENRICHED'
+                                  )?.count || 0;
+                                  return enrichedCount;
+                                })()}
+                              </p>
+                              <p className="text-xs text-gray-400">
+                                {(() => {
+                                  const totalLeads = leadsCounts[campaign.campaign_id] || 0;
+                                  const enrichedCount = processStats[campaign.campaign_id]?.find(
+                                    stat => stat.process_name === 'ENRICHED' || stat.process === 'ENRICHED'
+                                  )?.count || 0;
+                                  const percentage = totalLeads > 0 ? ((enrichedCount / totalLeads) * 100).toFixed(1) : '0.0';
+                                  return `de ${totalLeads} (${percentage}%)`;
+                                })()}
+                              </p>
+                            </div>
                           </div>
 
                           {/* PROFILE VISITOR */}
-                          <div className="text-center p-2 sm:p-2 bg-white/5 rounded-lg">
-                            <p className="process-stat-title font-bold text-white">PROFILE VISITOR</p>
-                            <p className="text-xs text-gray-300">
-                              {(() => {
-                                const totalLeads = leadsCounts[campaign.campaign_id] || 0;
-                                const profileVisitorCount = processStats[campaign.campaign_id]?.find(
-                                  stat => stat.process_name === 'PROFILE VISITOR' || stat.process === 'PROFILE VISITOR'
-                                )?.count || 0;
-                                const percentage = totalLeads > 0 ? ((profileVisitorCount / totalLeads) * 100).toFixed(1) : '0.0';
-                                return `${profileVisitorCount} (${percentage}%)`;
-                              })()}
-                            </p>
+                          <div className="text-center py-3 px-2 bg-white/5 rounded-lg">
+                            <div className="flex items-center justify-center mb-2">
+                              <p className="process-stat-title font-bold text-white text-xs">PROFILE VISITOR</p>
+                            </div>
+
+                            {/* Progreso de campaña */}
+                            <div className="mb-2">
+                              <p className="text-lg font-semibold text-white">
+                                {(() => {
+                                  const profileVisitorCount = processStats[campaign.campaign_id]?.find(
+                                    stat => stat.process_name === 'PROFILE VISITOR' || stat.process === 'PROFILE VISITOR'
+                                  )?.count || 0;
+                                  return profileVisitorCount;
+                                })()}
+                              </p>
+                              <p className="text-xs text-gray-400">
+                                {(() => {
+                                  const totalLeads = leadsCounts[campaign.campaign_id] || 0;
+                                  const profileVisitorCount = processStats[campaign.campaign_id]?.find(
+                                    stat => stat.process_name === 'PROFILE VISITOR' || stat.process === 'PROFILE VISITOR'
+                                  )?.count || 0;
+                                  const percentage = totalLeads > 0 ? ((profileVisitorCount / totalLeads) * 100).toFixed(1) : '0.0';
+                                  return `sur ${totalLeads} leads`;
+                                })()}
+                              </p>
+                            </div>
+
+                            {/* Rate limits */}
+                            {rateLimits && !rateLimitsLoading && (
+                              <div className="pt-2 border-t border-gray-600">
+                                <div className="flex justify-between items-center mb-1">
+                                  <span className="text-xs text-gray-300">Limite quotidienne:</span>
+                                  <span className={`text-xs font-medium ${rateLimits.profileVisitor.exceeded ? 'text-red-400' : 'text-green-400'}`}>
+                                    {rateLimits.profileVisitor.remaining} restants
+                                  </span>
+                                </div>
+                                <div className="w-full bg-gray-700 rounded-full h-1.5">
+                                  <div
+                                    className={`h-1.5 rounded-full transition-all duration-300 ${rateLimits.profileVisitor.exceeded ? 'bg-red-400' : 'bg-green-400'}`}
+                                    style={{ width: `${rateLimits.profileVisitor.percentage}%` }}
+                                  />
+                                </div>
+                              </div>
+                            )}
                           </div>
 
                           {/* AUTOCONNECT */}
-                          <div className="text-center p-2 sm:p-2 bg-white/5 rounded-lg">
-                            <p className="process-stat-title font-bold text-white">AUTOCONNECT</p>
-                            <p className="text-xs text-gray-300">
-                              {(() => {
-                                const totalLeads = leadsCounts[campaign.campaign_id] || 0;
-                                const autoconnectCount = processStats[campaign.campaign_id]?.find(
-                                  stat => stat.process_name === 'AUTOCONNECT' || stat.process === 'AUTOCONNECT'
-                                )?.count || 0;
-                                const percentage = totalLeads > 0 ? ((autoconnectCount / totalLeads) * 100).toFixed(1) : '0.0';
-                                return `${autoconnectCount} (${percentage}%)`;
-                              })()}
-                            </p>
+                          <div className="text-center py-3 px-2 bg-white/5 rounded-lg">
+                            <div className="flex items-center justify-center mb-2">
+                              <p className="process-stat-title font-bold text-white text-xs">AUTOCONNECT</p>
+                            </div>
+
+                            {/* Progreso de campaña */}
+                            <div className="mb-2">
+                              <p className="text-lg font-semibold text-white">
+                                {(() => {
+                                  const autoconnectCount = processStats[campaign.campaign_id]?.find(
+                                    stat => stat.process_name === 'AUTOCONNECT' || stat.process === 'AUTOCONNECT'
+                                  )?.count || 0;
+                                  return autoconnectCount;
+                                })()}
+                              </p>
+                              <p className="text-xs text-gray-400">
+                                {(() => {
+                                  const totalLeads = leadsCounts[campaign.campaign_id] || 0;
+                                  const autoconnectCount = processStats[campaign.campaign_id]?.find(
+                                    stat => stat.process_name === 'AUTOCONNECT' || stat.process === 'AUTOCONNECT'
+                                  )?.count || 0;
+                                  const percentage = totalLeads > 0 ? ((autoconnectCount / totalLeads) * 100).toFixed(1) : '0.0';
+                                  return `sur ${totalLeads} leads`;
+                                })()}
+                              </p>
+                            </div>
+
+                            {/* Rate limits */}
+                            {rateLimits && !rateLimitsLoading && (
+                              <div className="pt-2 border-t border-gray-600">
+                                <div className="flex justify-between items-center mb-1">
+                                  <span className="text-xs text-gray-300">Limite quotidienne:</span>
+                                  <span className={`text-xs font-medium ${rateLimits.autoconnect.exceeded ? 'text-red-400' : 'text-green-400'}`}>
+                                    {rateLimits.autoconnect.remaining} restants
+                                  </span>
+                                </div>
+                                <div className="w-full bg-gray-700 rounded-full h-1.5">
+                                  <div
+                                    className={`h-1.5 rounded-full transition-all duration-300 ${rateLimits.autoconnect.exceeded ? 'bg-red-400' : 'bg-green-400'}`}
+                                    style={{ width: `${rateLimits.autoconnect.percentage}%` }}
+                                  />
+                                </div>
+                              </div>
+                            )}
                           </div>
 
                           {/* MESSAGE SENDER */}
-                          <div className="text-center p-2 sm:p-2 bg-white/5 rounded-lg">
-                            <p className="process-stat-title font-bold text-white">MESSAGE SENDER</p>
-                            <p className="text-xs text-gray-300">
-                              {(() => {
-                                const totalLeads = leadsCounts[campaign.campaign_id] || 0;
-                                const messageSenderCount = processStats[campaign.campaign_id]?.find(
-                                  stat => stat.process_name === 'MESSAGE SENDER' || stat.process === 'MESSAGE SENDER'
-                                )?.count || 0;
-                                const percentage = totalLeads > 0 ? ((messageSenderCount / totalLeads) * 100).toFixed(1) : '0.0';
-                                return `${messageSenderCount} (${percentage}%)`;
-                              })()}
-                            </p>
+                          <div className="text-center py-3 px-2 bg-white/5 rounded-lg">
+                            <div className="flex items-center justify-center mb-2">
+                              <p className="process-stat-title font-bold text-white text-xs">MESSAGE SENDER</p>
+                            </div>
+
+                            {/* Progreso de campaña */}
+                            <div className="mb-2">
+                              <p className="text-lg font-semibold text-white">
+                                {(() => {
+                                  const messageSenderCount = processStats[campaign.campaign_id]?.find(
+                                    stat => stat.process_name === 'MESSAGE SENDER' || stat.process === 'MESSAGE SENDER'
+                                  )?.count || 0;
+                                  return messageSenderCount;
+                                })()}
+                              </p>
+                              <p className="text-xs text-gray-400">
+                                {(() => {
+                                  const totalLeads = leadsCounts[campaign.campaign_id] || 0;
+                                  const messageSenderCount = processStats[campaign.campaign_id]?.find(
+                                    stat => stat.process_name === 'MESSAGE SENDER' || stat.process === 'MESSAGE SENDER'
+                                  )?.count || 0;
+                                  const percentage = totalLeads > 0 ? ((messageSenderCount / totalLeads) * 100).toFixed(1) : '0.0';
+                                  return `sur ${totalLeads} leads`;
+                                })()}
+                              </p>
+                            </div>
+
+                            {/* Rate limits */}
+                            {rateLimits && !rateLimitsLoading && (
+                              <div className="pt-2 border-t border-gray-600">
+                                <div className="flex justify-between items-center mb-1">
+                                  <span className="text-xs text-gray-300">Limite quotidienne:</span>
+                                  <span className={`text-xs font-medium ${rateLimits.messageSender.exceeded ? 'text-red-400' : 'text-green-400'}`}>
+                                    {rateLimits.messageSender.remaining} restants
+                                  </span>
+                                </div>
+                                <div className="w-full bg-gray-700 rounded-full h-1.5">
+                                  <div
+                                    className={`h-1.5 rounded-full transition-all duration-300 ${rateLimits.messageSender.exceeded ? 'bg-red-400' : 'bg-green-400'}`}
+                                    style={{ width: `${rateLimits.messageSender.percentage}%` }}
+                                  />
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
 

@@ -137,6 +137,17 @@ export async function GET(request: NextRequest) {
       const errorsData = await errorsResponse.json();
       if (errorsData.data && errorsData.data.statistics) {
         errorsData.data.statistics.forEach((stat: any) => {
+          // Log específico para rate limit errors
+          if (stat.error_type === 'rate_limit_error') {
+            console.log('🚦 RATE LIMIT ERROR DETAILS:', {
+              error_type: stat.error_type,
+              unresolved_errors: stat.unresolved_errors,
+              total_occurrences: stat.total_occurrences,
+              last_occurrence: stat.last_occurrence,
+              full_stat: stat
+            });
+          }
+
           // Solo mostrar errores críticos del sistema
           const criticalErrorTypes = [
             'authentication_error',
