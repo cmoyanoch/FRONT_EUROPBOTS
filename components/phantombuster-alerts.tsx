@@ -151,11 +151,6 @@ export function PhantombusterAlerts() {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
-                            <img
-                              src="https://phantombuster.imgix.net/assets/images/Phantombuster+logo.png?h=256"
-                              alt="Phantombuster"
-                              className="w-4 h-4 object-contain"
-                            />
                             <p className="text-sm font-medium text-white">
                               {error.message}
                             </p>
